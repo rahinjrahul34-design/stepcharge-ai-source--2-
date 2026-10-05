@@ -87,6 +87,12 @@ export interface TelemetryPacket {
   power_w: number | null // MEASURED·CALCULATED (V×I) or null
   measured_energy_j: number | null // CALCULATED (∫P dt) or null
   estimated_energy_j: number // ESTIMATED (½CV²) — always available
+  sequence_number?: number | null // Sequence number from ESP32
+  configuration_version?: number | null // Active configuration version
+  measurement_quality?: string // VALID, OUT_OF_RANGE, ESTIMATED, etc.
+  current_quality?: string // MEASURED, NOT_INSTALLED, SENSOR_DISCONNECTED
+  power_quality?: string // MEASURED, NOT_AVAILABLE, CALCULATED
+  energy_provenance?: { method: string; quality: string; unit: string }
   step_class: StepLabel // PREDICTED, or UNKNOWN when nothing has classified it
   confidence: number | null // PREDICTED 0..1, null when unclassified
   probabilities: Record<StepClass, number> | null
@@ -125,10 +131,16 @@ export interface FootstepEvent {
   id: string
   timestamp: string
   device_id: string
+  sequence_number?: number | null
   features: StepFeatures
+  waveform?: number[]
+  sampling_rate?: number
+  measured_energy_j?: number | null
   step_class: StepLabel
   confidence: number | null
   prediction_source: PredictionSource
+  feature_version?: string
+  model_version?: string | null
   /** denormalised for fast table/chart access */
   peak_voltage: number
   pulse_duration_ms: number
@@ -311,4 +323,341 @@ export interface DataSource {
   subscribeDevice(cb: (d: DeviceInfo | null) => void): () => void
   /** Writes the COMMAND only. actualState comes back from the firmware. */
   setLoad(load: LoadKey, on: boolean): Promise<void>
+}
+
+export interface ExperimentSession {
+  sessionId: string
+  experimentName: string
+  participantId: string
+  deviceId: string
+  stepClass: StepClass
+  targetSteps: number
+  collectedSteps: number
+  validSteps: number
+  rejectedSteps: number
+  status: 'PLANNED' | 'RUNNING' | 'PAUSED' | 'COMPLETED' | 'CANCELLED'
+  startedAt?: string
+  completedAt?: string
+  notes?: string
+}
+
+export interface DatasetQualityMetrics {
+  totalSamples: number
+  uniqueParticipants: number
+  distribution: {
+    light: number
+    normal: number
+    heavy: number
+  }
+  classBalancePercent: number
+  missingValuesCount: number
+  rejectedSamplesCount: number
+  waveformAvailabilityPercent: number
+  measuredEnergyAvailabilityPercent: number
+  isReadyForTraining: boolean
+  recommendations: string[]
+}
+
+export interface CalibrationLog {
+  _id: string
+  deviceId: string
+  calibrationType: 'VOLTAGE' | 'CURRENT' | 'PIEZO_THRESHOLD' | 'STORAGE_VOLTAGE'
+  referenceValue: number
+  measuredValue: number
+  previousScale: number
+  newScale: number
+  errorPercent: number
+  result: 'PASS' | 'FAIL' | 'APPLIED'
+  timestamp: string
+  notes?: string
+}
+
+export interface SelfTestResult {
+  component: string
+  status: 'PASS' | 'FAIL' | 'NOT_INSTALLED' | 'NOT_TESTABLE' | 'WARNING'
+  details: string
+  timestamp: string
+}
+
+export interface SelfTestReport {
+  timestamp: string
+  overallStatus: 'HEALTHY' | 'DEGRADED' | 'CRITICAL'
+  results: SelfTestResult[]
+}
+
+export interface DeviceRemoteConfig {
+  samplingIntervalMs: number
+  telemetryIntervalMs: number
+  stepThresholdVoltage: number
+  stepReleaseVoltage: number
+  minPulseDurationMs: number
+  maxPulseDurationMs: number
+  refractoryPeriodMs: number
+  storageWarningVoltage: number
+  storageLowVoltage: number
+  storageMaxSafeVoltage: number
+  voltageCalibrationScale: number
+  voltageCalibrationOffset: number
+  currentCalibrationScale: number
+  currentCalibrationOffset: number
+  supercapFarads: number
+  version: number
+  updatedAt: string
+}
+
+/* ============================================================
+   PHASE 3 TYPES: AI INTELLIGENCE, RESEARCH & MODEL REGISTRY
+   ============================================================ */
+
+export interface ModelRegistryItem {
+  _id: string
+  modelName: string
+  version: string
+  algorithm: 'Random Forest' | 'Gradient Boosting' | 'Logistic Regression' | 'SVM' | string
+  status: 'PRODUCTION' | 'VALIDATION' | 'ARCHIVED'
+  featureVersion: string
+  featureCount: number
+  datasetVersion: string | null
+  isCurrent: boolean
+  metrics: { accuracy: number; precision: number; recall: number; f1: number } | null
+  confusionMatrix: number[][] | null
+  featureImportance: Record<string, number> | null
+  inferenceTimeMs?: number | null
+  modelSizeKb?: number | null
+  evaluationMethod?: string | null
+  evaluationDetail?: string | null
+  participants?: number
+  rollbackHistory?: Array<{
+    fromVersion: string
+    toVersion: string
+    reason: string
+    performedBy: string
+    timestamp: string
+  }>
+  promotedAt?: string | null
+  promotedBy?: string | null
+  trainedAt?: string | null
+}
+
+export interface ModelComparisonItem {
+  algorithm: string
+  version: string
+  metrics: { accuracy: number; precision: number; recall: number; f1: number }
+  inferenceTimeMs: number
+  modelSizeKb: number
+  confusionMatrix: number[][]
+  featureImportance: Record<string, number>
+}
+
+export interface ModelComparisonResult {
+  datasetVersion?: string
+  sampleCount?: number
+  participants?: number
+  cvMethod?: string
+  models: ModelComparisonItem[]
+}
+
+export interface FeatureStudyResult {
+  datasetVersion?: string
+  sampleCount?: number
+  sets: Record<
+    string,
+    {
+      featureCount: number
+      features: string[]
+      metrics: { accuracy: number; precision: number; recall: number; f1: number }
+      meanAccuracy: number
+    }
+  >
+}
+
+export interface AnomalyEventRecord {
+  _id: string
+  deviceId: string
+  timestamp: string
+  anomalyType:
+    | 'VOLTAGE_SPIKE'
+    | 'VOLTAGE_DROP'
+    | 'STORAGE_ANOMALY'
+    | 'UNUSUAL_PULSE'
+    | 'SENSOR_FAILURE'
+    | 'POSSIBLE_DUPLICATE'
+    | 'HIGH_ANOMALY_SCORE'
+  severity: 'LOW' | 'MEDIUM' | 'HIGH' | 'CRITICAL'
+  source: 'RULE-BASED' | 'ML-BASED'
+  anomalyScore: number | null
+  status: 'DETECTED' | 'ACKNOWLEDGED' | 'INVESTIGATING' | 'RESOLVED' | 'FALSE_POSITIVE'
+  observedValue: string
+  typicalRange: string
+  possibleCause: string
+  evidence: string
+  drivingFeature?: string
+  resolvedAt?: string
+  resolvedBy?: string
+  notes?: string
+}
+
+export interface EnergyForecastResult {
+  isAvailable: boolean
+  status: 'SUCCESS' | 'INSUFFICIENT_DATA' | 'FALLBACK_AVERAGE' | 'MODEL_NOT_AVAILABLE'
+  message?: string
+  forecastedSteps: number
+  predictedEnergyJ: number | null
+  confidenceInterval?: { lowerJ: number; upperJ: number } | null
+  historicalStepsUsed: number
+  horizon: string
+  metrics?: { mae: number; rmse: number; mape: number } | null
+}
+
+export interface EnergyAnalyticsResult {
+  timeRange: string
+  totalFootsteps: number
+  totalMeasuredEnergyJ: number | null
+  estimatedStoredEnergyJ: number
+  averagePowerMw: number | null
+  peakPowerMw: number | null
+  averageStepVoltageV: number
+  energyPerStepJ: number | null
+  energyPerStepType: 'MEASURED' | 'ESTIMATED'
+  measurementProvenance: {
+    voltage: string
+    current: string
+    power: string
+    energy: string
+  }
+  timeSeries: Array<{
+    period: string
+    stepCount: number
+    measuredEnergyJ: number | null
+    estimatedEnergyJ: number
+    averageVoltage: number
+  }>
+}
+
+export interface ExplainableHealthData {
+  overallScore: number
+  status: 'HEALTHY' | 'DEGRADED' | 'CRITICAL'
+  breakdown: Array<{
+    category: string
+    status: 'PASS' | 'WARN' | 'FAIL'
+    detail: string
+    score: number
+  }>
+}
+
+export interface DatasetVersionRecord {
+  _id: string
+  version: string
+  frozenAt: string
+  totalSamples: number
+  uniqueParticipants: number
+  isFrozen: boolean
+  isBaseline: boolean
+  distribution: { LIGHT: number; NORMAL: number; HEAVY: number }
+  qualityScore: number
+}
+
+/* ============================================================
+   PHASE 4 TYPES: RESEARCH VALIDATION, STATISTICS & MONITORING
+   ============================================================ */
+
+export interface ExperimentComparisonSession {
+  sessionId: string
+  name: string
+  mode: string
+  footstepsCount: number
+  durationSec: number
+  stepRatePerMin: number
+  meanPeakVoltage: number
+  meanPulseDuration: number
+  storageDeltaV: number
+  energyYieldJ: number
+  energyYieldType: 'MEASURED' | 'ESTIMATED'
+}
+
+export interface ExperimentComparisonResult {
+  sessions: ExperimentComparisonSession[]
+  metricsComparison: {
+    peakVoltage: { min: number; max: number; average: number }
+    pulseDuration: { min: number; max: number; average: number }
+    energyPerStep: { min: number; max: number; average: number; type: string }
+  }
+}
+
+export interface StatisticalSummary {
+  n: number
+  mean: number
+  median: number
+  stdDev: number
+  variance: number
+  min: number
+  max: number
+  q1: number
+  q3: number
+  iqr: number
+  ci95: { lower: number; upper: number }
+}
+
+export interface StatisticalAnalysisResult {
+  sampleCount: number
+  variables: Record<string, StatisticalSummary>
+  byClass: Record<string, Record<string, StatisticalSummary>>
+  hypothesisTests: {
+    testName: string
+    statistic: number
+    degreesOfFreedom: number
+    pValue: number
+    significantAt005: boolean
+    interpretation: string
+  }
+}
+
+export interface CorrelationMatrixResult {
+  variables: string[]
+  pearson: number[][]
+  spearman: number[][]
+  interpretations: Array<{ pair: string; pearson: number; spearman: number; insight: string }>
+  scientificDisclaimer: string
+}
+
+export interface ResearchReportData {
+  title: string
+  version: string
+  generatedAt: string
+  hardwareSpecifications: Record<string, any>
+  datasetSummary: Record<string, any>
+  experimentalConditions: Record<string, any>
+  statisticalResults: Record<string, any>
+  mlModelPerformance: Record<string, any>
+  energyHarvestingPerformance: Record<string, any>
+  systemReliabilityMetrics: Record<string, any>
+  anomalyAuditLog: Record<string, any>
+  discussionsAndLimitations: string[]
+  conclusion: string
+  academicCitation: string
+}
+
+export interface SystemMonitorData {
+  timestamp: string
+  services: {
+    database: { name: string; status: string; isHealthy: boolean }
+    backend: { name: string; status: string; uptimeSec: number; isHealthy: boolean }
+    realtime: { name: string; status: string; isHealthy: boolean }
+    mlService: { name: string; status: string; version: string; modelLoaded: boolean; isHealthy: boolean }
+    iotDevice: { name: string; status: 'ONLINE' | 'OFFLINE'; lastSeenAgoMs: number | null; firmwareVersion: string; isHealthy: boolean }
+    googleAuth: { name: string; status: string; isHealthy: boolean }
+  }
+  telemetryReliability: {
+    totalObserved: number
+    packetsMissed: number
+    successRatePercent: number
+    averageLatencyMs: number
+    lastHeartbeat: string | null
+  }
+  endToEndLatency: {
+    sensorToBackendMs: number | null
+    backendToDatabaseMs: number | null
+    backendToDashboardMs: number
+    totalRoundtripMs: number
+  }
 }

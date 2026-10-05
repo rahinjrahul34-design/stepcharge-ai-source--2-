@@ -23,9 +23,9 @@ import {
   deleteSample as dsDelete,
   listSamples as dsList,
   makeSample,
-} from '../services/firebase/datasetService'
-import { isFirebaseConfigured, deviceId as envDeviceId } from '../services/firebase/config'
-import { fetchModelMetadata } from '../services/firebase/deviceService'
+} from '../services/api/datasetService'
+import { deviceId as envDeviceId } from '../services/api/client'
+import { fetchModelMetadata } from '../services/api/deviceService'
 import { EMPTY_LOADS } from './types'
 import type {
   AiInsight,
@@ -58,7 +58,7 @@ export const DEFAULT_SETTINGS: Settings = {
   storageTargetV: 5.0,
   minOperatingV: 2.0,
   maxSafeV: 5.4,
-  supercapFarads: 1.0,
+  supercapFarads: 0.1,
   energyMode: 'auto',
   modelName: 'Random Forest (scikit-learn)',
   classificationThreshold: 0.5,
@@ -285,11 +285,11 @@ export function StoreProvider({ children }: { children: ReactNode }) {
   }, [])
 
   const mlRef = useRef<MlService>(createMlService())
-  const liveAvailable = isFirebaseConfigured()
+  const liveAvailable = true
 
   const [mode, setModeState] = useState<SourceMode>(() => {
     const saved = localStorage.getItem('stepcharge.mode') as SourceMode | null
-    return saved === 'live' && isFirebaseConfigured() ? 'live' : 'demo'
+    return saved === 'live' ? 'live' : 'demo'
   })
   const [connection, setConnection] = useState<ConnectionState>('idle')
   const [connectionError, setConnectionError] = useState<string | null>(null)
@@ -371,7 +371,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
               reason: e.message,
               currentValue: 'error',
               threshold: '—',
-              action: 'Check Firebase rules and the device connection, then retry.',
+              action: 'Check backend API and the device connection, then retry.',
             })
           })
         : new MockDataSource(ml, settings.supercapFarads)
@@ -658,18 +658,16 @@ export function StoreProvider({ children }: { children: ReactNode }) {
   const loadModel = useCallback(async () => {
     setModelLoading(true)
     try {
-      // Preference order: ML API → Firebase modelMetadata → not connected.
+      // Preference order: ML API → MongoDB modelMetadata → not connected.
       const meta = await mlRef.current.getMetadata()
       if (meta.connected) {
         setModel(meta)
         return
       }
-      if (isFirebaseConfigured()) {
-        const fb = await fetchModelMetadata().catch(() => null)
-        if (fb) {
-          setModel(fb)
-          return
-        }
+      const metaDb = await fetchModelMetadata().catch(() => null)
+      if (metaDb && metaDb.connected) {
+        setModel(metaDb)
+        return
       }
       setModel(meta)
     } catch {

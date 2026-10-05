@@ -491,7 +491,7 @@ export function ElectricalPanel() {
 /**
  * Phase 14 — the honest load control surface.
  *
- * The dashboard writes a COMMAND to Firebase. Only the ESP32 can report what
+ * The dashboard writes a COMMAND to the backend API. Only the ESP32 can report what
  * the GPIO actually did. So we always render both:
  *
  *   COMMAND  — what the dashboard asked for
@@ -531,7 +531,7 @@ export function LoadStatusCard() {
       title="Demonstration Loads"
       subtitle={
         controllable
-          ? 'Dashboard writes a command to Firebase; the ESP32 confirms the actual GPIO state.'
+          ? 'Dashboard writes a command to the backend API; the ESP32 confirms the actual GPIO state.'
           : 'Firmware reports status only — no control surface is exposed, so none is shown.'
       }
       icon={Lightbulb}
@@ -539,7 +539,7 @@ export function LoadStatusCard() {
     >
       {deviceOffline && (
         <p className="mb-3 rounded-lg border border-rose-400/25 bg-rose-400/[0.07] p-3 text-xs text-rose-200">
-          The ESP32 is not reporting. Commands can still be queued in Firebase, but no load can be
+          The ESP32 is not reporting. Commands can still be queued in MongoDB, but no load can be
           confirmed as switched until the device reconnects.
         </p>
       )}
@@ -849,7 +849,7 @@ export function SystemHealthCard() {
     ['ESP32', health.esp32.toUpperCase(), health.esp32 === 'online' ? 'ok' : 'crit'],
     ['Wi-Fi', health.wifi.toUpperCase(), health.wifi === 'connected' ? 'ok' : 'crit'],
     [
-      'Firebase',
+      'Database',
       mode === 'demo' ? 'NOT USED (DEMO)' : health.cloud.toUpperCase(),
       mode === 'demo' ? 'idle' : health.cloud === 'connected' ? 'ok' : 'crit',
     ],
@@ -897,7 +897,7 @@ export function SystemStatusPanel() {
       note: device?.firmwareVersion ? `fw ${device.firmwareVersion}` : 'firmware unknown',
     },
     {
-      label: 'Firebase',
+      label: 'Database',
       value:
         health.cloud === 'connected'
           ? 'CONNECTED'

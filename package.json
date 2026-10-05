@@ -10,11 +10,11 @@
     "preview": "vite preview"
   },
   "dependencies": {
-    "firebase": "^12.19.0",
     "lucide-react": "^1.52.0",
     "react": "^19.2.8",
     "react-dom": "^19.2.8",
-    "recharts": "^3.10.1"
+    "recharts": "^3.10.1",
+    "socket.io-client": "^4.8.4"
   },
   "devDependencies": {
     "@types/node": "^24.13.3",

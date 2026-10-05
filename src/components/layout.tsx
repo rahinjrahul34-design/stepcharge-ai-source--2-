@@ -26,35 +26,48 @@ import {
   LogOut,
   PanelLeftClose,
   PanelLeftOpen,
+  Sliders,
+  Microscope,
+  Layers,
+  Tv,
 } from 'lucide-react'
 import { useStore } from '../data/store'
 import { StatusBadge, fmtDateTime } from './ui'
 import type { AlertCategory, AlertSeverity, RangeKey } from '../data/types'
+import type { AuthUser } from '../services/api/authService'
 
 export type PageKey =
   | 'overview'
   | 'live'
   | 'footsteps'
   | 'energy'
+  | 'experiments'
+  | 'calibration'
   | 'ai'
   | 'model'
+  | 'research'
   | 'history'
   | 'health'
   | 'settings'
+  | 'presentation'
 
 export const NAV: { key: PageKey; label: string; icon: LucideIcon }[] = [
   { key: 'overview', label: 'Overview', icon: LayoutDashboard },
   { key: 'live', label: 'Live Monitoring', icon: Activity },
   { key: 'footsteps', label: 'Footstep Analytics', icon: Footprints },
   { key: 'energy', label: 'Energy Analytics', icon: Zap },
+  { key: 'experiments', label: 'Experiment Mode', icon: Microscope },
+  { key: 'calibration', label: 'Hardware Calibration', icon: Sliders },
   { key: 'ai', label: 'AI Insights', icon: BrainCircuit },
   { key: 'model', label: 'AI Model', icon: FlaskConical },
+  { key: 'research', label: 'Research Analytics', icon: Layers },
+  { key: 'presentation', label: 'Presentation Mode', icon: Tv },
   { key: 'history', label: 'History', icon: Database },
   { key: 'health', label: 'System Health', icon: Gauge },
   { key: 'settings', label: 'Settings', icon: SettingsIcon },
 ]
 
-const MOBILE_NAV: PageKey[] = ['overview', 'live', 'footsteps', 'ai', 'health']
+const MOBILE_NAV: PageKey[] = ['overview', 'live', 'footsteps', 'experiments', 'ai', 'health']
 
 export function Logo({ compact }: { compact?: boolean }) {
   return (
@@ -82,7 +95,7 @@ export function DataSourceSwitch({ compact }: { compact?: boolean }) {
         <button
           onClick={() => setMode('live')}
           disabled={!liveAvailable}
-          title={liveAvailable ? 'Use live ESP32 telemetry from Firebase' : 'Configure Firebase env vars to enable live mode'}
+          title={liveAvailable ? 'Use live ESP32 telemetry from Node.js backend & MongoDB' : 'Backend API connection required'}
           className={`rounded-md border px-2 py-1.5 text-[11px] font-medium transition-colors ${
             mode === 'live'
               ? 'border-emerald-400/40 bg-emerald-400/10 text-emerald-300'
@@ -121,11 +134,6 @@ export function DataSourceSwitch({ compact }: { compact?: boolean }) {
           </div>
         )}
       </div>
-      {!liveAvailable && (
-        <p className="mt-2 text-[10px] leading-relaxed text-slate-600">
-          Live mode needs VITE_FIREBASE_* env vars.
-        </p>
-      )}
     </div>
   )
 }
@@ -252,11 +260,15 @@ export function Topbar({
   onBell,
   unread,
   onSignOut,
+  user,
+  onPresentation,
 }: {
   onMenu: () => void
   onBell: () => void
   unread: number
   onSignOut: () => void
+  user?: AuthUser | null
+  onPresentation?: () => void
 }) {
   const { health, mode, packet, connection, connectionError, retry, isStale } = useStore()
   const [now, setNow] = useState(new Date())
@@ -280,6 +292,16 @@ export function Topbar({
         </div>
 
         <div className="ml-auto flex items-center gap-2 sm:gap-3">
+          {onPresentation && (
+            <button
+              onClick={onPresentation}
+              className="flex items-center gap-1.5 rounded-lg border border-cyan-500/30 bg-cyan-500/10 px-2.5 py-1.5 text-xs font-semibold text-cyan-300 hover:bg-cyan-500/20 hover:text-cyan-200 transition-colors shadow-sm"
+              title="Switch to full-screen research presentation mode"
+            >
+              <Tv className="h-3.5 w-3.5" />
+              <span className="hidden md:inline">Presentation</span>
+            </button>
+          )}
           <button
             onClick={onSignOut}
             title="Sign out"
@@ -326,9 +348,39 @@ export function Topbar({
               </span>
             )}
           </button>
-          <button className="grid h-9 w-9 place-items-center rounded-lg border border-white/10 bg-white/[0.03] text-slate-300 hover:text-white">
-            <UserRound className="h-4 w-4" />
-          </button>
+          {user ? (
+            <div
+              className="flex items-center gap-2 rounded-lg border border-white/10 bg-white/[0.03] px-2.5 py-1.5"
+              title={`${user.name || user.email} (${user.role || 'USER'})`}
+            >
+              {user.avatarUrl ? (
+                <img
+                  src={user.avatarUrl}
+                  alt={user.name || 'User avatar'}
+                  className="h-6 w-6 rounded-full object-cover border border-white/20"
+                />
+              ) : (
+                <div className="grid h-6 w-6 place-items-center rounded-full bg-volt/20 text-[10px] font-bold text-volt">
+                  {(user.name || user.email || 'U').charAt(0).toUpperCase()}
+                </div>
+              )}
+              <div className="hidden text-left sm:block">
+                <span className="block max-w-[100px] truncate text-[11px] font-medium leading-none text-slate-200">
+                  {user.name || user.email?.split('@')[0]}
+                </span>
+                <span className="text-[9px] uppercase tracking-wider text-slate-500">
+                  {user.role || 'USER'}
+                </span>
+              </div>
+            </div>
+          ) : (
+            <button
+              title="User profile"
+              className="grid h-9 w-9 place-items-center rounded-lg border border-white/10 bg-white/[0.03] text-slate-300 hover:text-white"
+            >
+              <UserRound className="h-4 w-4" />
+            </button>
+          )}
         </div>
       </div>
 
@@ -541,11 +593,13 @@ export function DashboardLayout({
   setPage,
   children,
   onSignOut,
+  user,
 }: {
   page: PageKey
   setPage: (p: PageKey) => void
   children: ReactNode
   onSignOut: () => void
+  user?: AuthUser | null
 }) {
   const [navOpen, setNavOpen] = useState(false)
   const [collapsed, setCollapsed] = useState(() => localStorage.getItem('sc.sidebar') === 'collapsed')
@@ -572,6 +626,8 @@ export function DashboardLayout({
         onBell={() => setBell(true)}
         unread={unread}
         onSignOut={onSignOut}
+        user={user}
+        onPresentation={() => setPage('presentation')}
       />
       <main className="mx-auto max-w-[1600px] px-4 pb-24 pt-5 sm:px-6 md:pb-10">{children}</main>
       <MobileNav page={page} setPage={setPage} />

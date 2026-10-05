@@ -1,4 +1,4 @@
-import { Activity, BatteryCharging, Play, Gauge, RefreshCw } from 'lucide-react'
+import { Activity, BatteryCharging, Play, Gauge, RefreshCw, Zap } from 'lucide-react'
 import { useStore } from '../data/store'
 import { LiveVoltageChart, StorageChart } from '../components/charts'
 import { MetricCard, Panel, SectionTitle, EmptyState } from '../components/ui'
@@ -10,6 +10,7 @@ import {
 } from '../components/cards'
 import { estPowerMw } from '../data/energy'
 import { StatusBadge } from '../components/ui'
+import { FootstepWaveformViewer } from '../components/FootstepWaveformViewer'
 
 export default function Live() {
   const { series, packet, settings, simulateStep, health, mode, connection, connectionError, retry, isStale } =
@@ -48,7 +49,6 @@ export default function Live() {
   const cur = live.at(-1) ?? 0
   const peak = live.length ? Math.max(...live) : 0
   const avg = live.length ? live.reduce((a, b) => a + b, 0) / live.length : 0
-  const min = live.length ? Math.min(...live) : 0
 
   return (
     <div className="space-y-5">
@@ -70,19 +70,51 @@ export default function Live() {
       </div>
 
       <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
-        <MetricCard label="Current" value={cur} unit="V" icon={Activity} provenance="MEASURED" />
-        <MetricCard label="Peak (window)" value={peak} unit="V" tone="warn" provenance="MEASURED" />
-        <MetricCard label="Average (window)" value={avg} unit="V" provenance="CALCULATED" />
-        <MetricCard label="Minimum (window)" value={min} unit="V" tone="idle" provenance="MEASURED" />
+        <MetricCard
+          label="Storage Voltage"
+          value={packet.storage_voltage}
+          unit="V"
+          icon={BatteryCharging}
+          tone="ok"
+          provenance="MEASURED"
+          sub="Supercapacitor rail terminal"
+        />
+        <MetricCard
+          label="Harvest / Load Current"
+          value={packet.current_a !== null ? Number((packet.current_a * 1000).toFixed(2)) : 'Not measured'}
+          unit={packet.current_a !== null ? 'mA' : ''}
+          icon={Activity}
+          tone={packet.current_a !== null ? 'info' : 'idle'}
+          provenance={packet.current_a !== null ? 'MEASURED' : 'UNAVAILABLE'}
+          sub={packet.current_a !== null ? 'From INA219/INA226' : 'No current sensor installed'}
+        />
+        <MetricCard
+          label="Instantaneous Power"
+          value={packet.power_w !== null ? Number((packet.power_w * 1000).toFixed(2)) : 'Not measured'}
+          unit={packet.power_w !== null ? 'mW' : ''}
+          icon={Zap}
+          tone={packet.power_w !== null ? 'warn' : 'idle'}
+          provenance={packet.power_w !== null ? 'CALCULATED' : 'UNAVAILABLE'}
+          sub={packet.power_w !== null ? 'P = V × I' : 'Requires current sensing'}
+        />
+        <MetricCard
+          label="Stored Energy"
+          value={Number(packet.estimated_energy_j.toFixed(3))}
+          unit="J"
+          icon={Gauge}
+          tone="info"
+          provenance="ESTIMATED"
+          sub="½ C V² theoretical model"
+        />
       </div>
 
       <div className="panel grid grid-cols-2 gap-4 p-4 lg:grid-cols-5">
         {[
-          ['Current voltage', `${cur.toFixed(2)} V`],
-          ['Storage voltage', `${packet.storage_voltage.toFixed(2)} V`],
+          ['Harvester output', `${cur.toFixed(2)} V`],
+          ['Window peak', `${peak.toFixed(2)} V`],
+          ['Window average', `${avg.toFixed(2)} V`],
           ['Current step', packet.step_class],
           ['AI confidence', packet.confidence === null ? 'Not available' : `${(packet.confidence * 100).toFixed(0)}%`],
-          ['Estimated energy', `${packet.estimated_energy_j.toFixed(2)} J`],
         ].map(([k, v]) => (
           <div key={k}>
             <p className="label">{k}</p>
@@ -92,6 +124,8 @@ export default function Live() {
       </div>
 
       <FootstepDetectedCard />
+
+      <FootstepWaveformViewer deviceId={packet.device_id} />
 
       <Panel
         title="Live Voltage Output"

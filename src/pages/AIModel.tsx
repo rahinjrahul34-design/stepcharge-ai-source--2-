@@ -15,7 +15,7 @@ import { ML_API_URL } from '../services/ml/mlService'
 import { EmptyState, MetricCard, Panel, SectionTitle, StatusBadge, ConfidenceBar } from '../components/ui'
 import type { StepClass, StepFeatures } from '../data/types'
 import { downloadFile } from '../lib/export'
-import { datasetToCsv } from '../services/firebase/datasetService'
+import { datasetToCsv } from '../services/api/datasetService'
 
 const CLASSES: StepClass[] = ['LIGHT', 'NORMAL', 'HEAVY']
 const FEATURE_KEYS: (keyof StepFeatures)[] = [
@@ -206,7 +206,7 @@ export default function AIModel() {
         <Panel title="Performance metrics" icon={Table2}>
           <EmptyState
             title="No evaluation metrics available"
-            message="Metrics appear here once a trained model reports them from GET /model (or modelMetadata in Firebase). The dashboard will not display placeholder accuracy figures."
+            message="Metrics appear here once a trained model reports them from GET /model (or modelMetadata in MongoDB Atlas). The dashboard will not display placeholder accuracy figures."
             tone="warn"
           />
         </Panel>

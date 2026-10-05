@@ -4,12 +4,11 @@ import {
   normalise,
   subscribeFootstepEvents,
   subscribeLatestTelemetry,
-} from '../services/firebase/telemetryService'
-import { subscribeLoads, writeLoadCommand } from '../services/firebase/loadService'
-import { subscribeDevice } from '../services/firebase/deviceService'
-import { queryEvents } from '../services/firebase/historyService'
-import { fetchPiezoArray } from '../services/firebase/deviceService'
-import { isFirebaseConfigured } from '../services/firebase/config'
+} from '../services/api/telemetryService'
+import { subscribeLoads, writeLoadCommand } from '../services/api/loadService'
+import { subscribeDevice } from '../services/api/deviceService'
+import { queryEvents } from '../services/api/historyService'
+import { fetchPiezoArray } from '../services/api/deviceService'
 import type {
   DataSource,
   DeviceInfo,
@@ -24,7 +23,7 @@ import type {
 import { EMPTY_LOADS } from './types'
 
 /**
- * LIVE DATA SOURCE — ESP32 → Wi-Fi → Firebase RTDB → here.
+ * LIVE DATA SOURCE — ESP32 → Node.js REST API + MongoDB Atlas + Socket.IO → Dashboard.
  *
  * Nothing is synthesised. If the hardware does not report a field it stays
  * null and the UI renders "Not measured". When a step arrives without an
@@ -56,14 +55,10 @@ export class LiveDataSource implements DataSource {
   }
 
   static get available() {
-    return isFirebaseConfigured()
+    return true
   }
 
   async connect() {
-    if (!isFirebaseConfigured())
-      throw new Error(
-        'Live mode unavailable: Firebase is not configured. Add VITE_FIREBASE_DB_URL, VITE_FIREBASE_API_KEY and VITE_FIREBASE_PROJECT_ID to .env.local and reload.',
-      )
     this.detach.push(
       await subscribeLatestTelemetry((raw) => this.handleTelemetry(raw), this.onError),
       await subscribeFootstepEvents((raw, key) => void this.handleEvent(raw, key), this.onError),

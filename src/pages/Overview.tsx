@@ -68,7 +68,7 @@ export default function Overview({ go }: { go: (p: PageKey) => void }) {
         <SystemStatusPanel />
         <EmptyState
           title="WAITING FOR LIVE DEVICE DATA"
-          message="Connected to Firebase in LIVE mode, but the ESP32 has not published any telemetry yet. No simulated values will be shown — switch to Demo Mode if you want to explore the dashboard without hardware."
+          message="Connected to Node.js backend in LIVE mode, but the ESP32 has not published any telemetry yet. No simulated values will be shown — switch to Demo Mode if you want to explore the dashboard without hardware."
           tone="warn"
           action={
             <button className="btn" onClick={retry}>

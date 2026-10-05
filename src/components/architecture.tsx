@@ -2,7 +2,7 @@ import { useState } from 'react'
 import {
   BatteryCharging,
   BrainCircuit,
-  Cloud,
+  Database,
   Cpu,
   Footprints,
   LayoutDashboard,
@@ -46,7 +46,7 @@ export function SystemArchitecture() {
     { key: 'cap', label: 'Supercapacitor', icon: BatteryCharging, purpose: 'Stores harvested charge (E = ½CV², estimated).', input: 'DC charge', output: 'Storage voltage', status: packet ? `${packet.storage_voltage.toFixed(2)} V MEASURED` : 'NO READING', tone: packet ? 'ok' : 'idle' },
     { key: 'esp', label: 'ESP32', icon: Cpu, purpose: 'Samples voltages, detects steps, controls the load.', input: 'ADC voltages', output: 'Telemetry packets', status: health.esp32.toUpperCase(), tone: health.esp32 === 'online' ? 'ok' : health.esp32 === 'degraded' ? 'warn' : 'crit' },
     { key: 'wifi', label: 'Wi-Fi', icon: Wifi, purpose: 'Transports telemetry to the cloud.', input: 'Packets', output: 'HTTPS stream', status: packet ? `${health.wifi.toUpperCase()} · ${health.rssi} dBm` : 'UNKNOWN', tone: packet ? 'ok' : 'idle' },
-    { key: 'fb', label: 'Firebase', icon: Cloud, purpose: 'Realtime store for telemetry, history and alerts.', input: 'Telemetry', output: 'Realtime subscription', status: mode === 'demo' ? 'NOT USED (DEMO)' : health.cloud.toUpperCase(), tone: mode === 'demo' ? 'idle' : health.cloud === 'connected' ? 'ok' : 'crit' },
+    { key: 'db', label: 'MongoDB Atlas', icon: Database, purpose: 'Document database for telemetry, footsteps, devices, and alerts.', input: 'Telemetry / events', output: 'Aggregated analytics & state', status: mode === 'demo' ? 'NOT USED (DEMO)' : health.cloud.toUpperCase(), tone: mode === 'demo' ? 'idle' : health.cloud === 'connected' ? 'ok' : 'crit' },
     { key: 'ml', label: 'ML service', icon: BrainCircuit, purpose: 'Random Forest classifies LIGHT / NORMAL / HEAVY.', input: '5 step features', output: 'Class + confidence', status: mlKind !== 'api' ? 'NOT CONFIGURED' : !mlHealth ? 'CHECKING…' : !mlHealth.reachable ? 'OFFLINE' : mlHealth.modelLoaded ? 'MODEL LOADED' : 'MODEL NOT TRAINED', tone: mlKind !== 'api' ? 'idle' : mlHealth?.reachable ? (mlHealth.modelLoaded ? 'ok' : 'warn') : 'crit' },
     { key: 'ui', label: 'Dashboard', icon: LayoutDashboard, purpose: 'Visualises data with clear provenance.', input: 'Telemetry + predictions', output: 'Insight', status: mode === 'demo' ? 'DEMO MODE' : 'LIVE MODE', tone: mode === 'demo' ? 'warn' : 'ok' },
   ]

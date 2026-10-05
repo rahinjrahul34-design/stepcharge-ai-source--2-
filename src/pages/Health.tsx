@@ -4,6 +4,8 @@ import iotImg from '../assets/visual-iot-network.jpg'
 import { MetricCard, Panel, EmptyState, StatusBadge, VisualBanner } from '../components/ui'
 import { SystemHealthCard, AnomalyCard, PiezoArrayHealth } from '../components/cards'
 import { StorageChart } from '../components/charts'
+import { SystemSelfTestPanel } from '../components/SystemSelfTestPanel'
+import { SystemMonitorPanel } from '../components/SystemMonitorPanel'
 
 const dur = (s: number) => {
   const h = Math.floor(s / 3600)
@@ -18,7 +20,11 @@ export default function Health() {
 
   return (
     <div className="space-y-5">
-      <VisualBanner image={iotImg} alt="ESP32 node linked over Wi-Fi to cloud infrastructure and a dashboard" eyebrow="ESP32 → Wi-Fi → Firebase → ML → Dashboard" title="System Health" sub="Device, link and pipeline status for the StepCharge node." />
+      <VisualBanner image={iotImg} alt="ESP32 node linked over Wi-Fi to cloud infrastructure and a dashboard" eyebrow="ESP32 → Wi-Fi → Backend API → ML → Dashboard" title="System Health" sub="Device, link and pipeline status for the StepCharge node." />
+
+      <SystemMonitorPanel deviceId={health.deviceId} />
+
+      <SystemSelfTestPanel deviceId={health.deviceId} />
 
       <SystemHealthCard />
 
@@ -101,7 +107,7 @@ export default function Health() {
                 ['Firmware version', health.firmwareVersion],
                 ['Last reboot', health.lastReboot],
                 ['Last data received', `${Math.max(1, Math.round(health.lastDataMs / 1000))} s ago`],
-                ['Transport', 'Wi-Fi 802.11 b/g/n → Firebase RTDB'],
+                ['Transport', 'Wi-Fi 802.11 b/g/n → Node.js HTTPS API & MongoDB Atlas'],
                 ['Firmware mode', packet?.load_control_available ? 'Telemetry + load control' : 'Telemetry only'],
                 ['Health score', `${health.healthScore}%`],
               ].map(([k, v]) => (

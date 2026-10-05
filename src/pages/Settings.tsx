@@ -2,6 +2,7 @@ import { BellRing, BrainCircuit, Cpu, Monitor, ShieldCheck, Zap, RotateCcw } fro
 import { DEFAULT_SETTINGS, useStore } from '../data/store'
 import { Panel, SectionTitle, StatusBadge, Toggle } from '../components/ui'
 import { DataSourceSwitch } from '../components/layout'
+import { RemoteConfigPanel } from '../components/RemoteConfigPanel'
 import type { Settings as S, StepClass } from '../data/types'
 
 function Row({
@@ -48,6 +49,10 @@ export default function SettingsPage() {
       </div>
 
       <div className="grid grid-cols-1 gap-5 xl:grid-cols-2">
+        <div className="xl:col-span-2">
+          <RemoteConfigPanel deviceId={settings.deviceId} />
+        </div>
+
         <Panel title="Device Settings" icon={Cpu}>
           <Row label="Data source" hint="Switch between simulated demo telemetry and the live ESP32 stream.">
             <DataSourceSwitch compact />
@@ -97,10 +102,10 @@ export default function SettingsPage() {
               </StatusBadge>
             </div>
           </Row>
-          <Row label="Sampling interval" hint="ADC sampling period on the device (ms)">
+          <Row label="Sampling interval [LOCAL UI SETTING]" hint="Dashboard gauge chart interval (ms) — Does not remotely configure hardware">
             {num('samplingIntervalMs', 1)}
           </Row>
-          <Row label="Data transmission interval" hint="Telemetry publish period (ms)">
+          <Row label="Data transmission interval [LOCAL UI SETTING]" hint="Client poll/refresh rate (ms) — Hardware telemetry period is governed by firmware">
             {num('txIntervalMs', 50)}
           </Row>
         </Panel>
@@ -229,12 +234,12 @@ export default function SettingsPage() {
         <Panel title="Security & data handling" icon={ShieldCheck}>
           <ul className="space-y-2 text-xs leading-relaxed text-slate-400">
             {[
-              'Wi-Fi passwords, Firebase admin keys, service-account JSON and ML API secrets are never stored in or rendered by the client.',
-              'All backend credentials are injected through environment variables at build time (VITE_FIREBASE_*).',
-              'Incoming telemetry is validated (range + type checks) before it reaches any chart.',
+              'Wi-Fi passwords, MongoDB Atlas URIs, Google OAuth secrets and ML API keys are never stored in or rendered by the client.',
+              'Client sessions are secured via server-side Google OAuth 2.0 with HTTP-only cookies.',
+              'Incoming telemetry is validated (range + physical type checks) before it reaches any chart.',
               'Null or out-of-range readings are discarded rather than plotted as zero.',
               'No personally identifying information is collected — only anonymous footstep physics.',
-              'Firebase Security Rules should restrict the browser client to read-only access.',
+              'Role-based access control enforces administrative boundaries on device and ML parameters.',
             ].map((t) => (
               <li key={t} className="flex gap-2">
                 <span className="mt-1.5 h-1 w-1 shrink-0 rounded-full bg-emerald-400" />
