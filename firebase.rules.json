@@ -1,0 +1,280 @@
+{
+  "rules": {
+    ".read": false,
+    ".write": false,
+    "devices": {
+      "$deviceId": {
+        ".read": "auth != null",
+        ".write": "auth != null && root.child('config/deviceOwners').child($deviceId).child(auth.uid).val() === true",
+        "deviceId": {
+          ".write": "auth != null",
+          ".validate": "newData.isString() && newData.val().length <= 64"
+        },
+        "name": {
+          ".write": "auth != null",
+          ".validate": "newData.isString() && newData.val().length <= 120"
+        },
+        "location": {
+          ".write": "auth != null",
+          ".validate": "newData.isString() && newData.val().length <= 120"
+        },
+        "firmwareVersion": {
+          ".validate": "newData.isString() && newData.val().length <= 32"
+        },
+        "status": {
+          ".validate": "newData.val() === 'ONLINE' || newData.val() === 'DEGRADED' || newData.val() === 'OFFLINE'"
+        },
+        "lastSeen": {
+          ".validate": "newData.isString()"
+        },
+        "uptimeSec": {
+          ".validate": "newData.isNumber() && newData.val() >= 0 && newData.val() <= 3200000000"
+        },
+        "wifiRssi": {
+          ".validate": "newData.isNumber() && newData.val() >= -120 && newData.val() <= 0"
+        },
+        "loads": {
+          "$load": {
+            ".validate": "$load === 'led' || $load === 'fan'",
+            "command": {
+              ".write": "auth != null",
+              ".validate": "newData.isBoolean()"
+            },
+            "actualState": {
+              ".write": "auth != null && root.child('config/deviceOwners').child($deviceId).child(auth.uid).val() === true",
+              ".validate": "newData.isBoolean()"
+            },
+            "updatedAt": {
+              ".validate": "newData.isString()"
+            },
+            "reportedAt": {
+              ".validate": "newData.isString()"
+            },
+            "$other": {
+              ".validate": false
+            }
+          }
+        },
+        "piezoArray": {
+          "$element": {
+            "voltage": {
+              ".validate": "newData.isNumber() && newData.val() >= 0 && newData.val() <= 60"
+            },
+            "status": {
+              ".validate": "newData.isString()"
+            },
+            "activityCount": {
+              ".validate": "newData.isNumber() && newData.val() >= 0"
+            },
+            "lastActive": {
+              ".validate": "newData.isString()"
+            }
+          }
+        }
+      }
+    },
+    "telemetry": {
+      "$deviceId": {
+        ".read": "auth != null",
+        ".write": "auth != null && root.child('config/deviceOwners').child($deviceId).child(auth.uid).val() === true",
+        "latest": {
+          ".validate": "newData.hasChildren(['deviceId', 'peakVoltage', 'storageVoltage', 'timestamp'])",
+          "deviceId": {
+            ".validate": "newData.isString() && newData.val() === $deviceId"
+          },
+          "timestamp": {
+            ".validate": "newData.isString()"
+          },
+          "peakVoltage": {
+            ".validate": "newData.isNumber() && newData.val() >= 0 && newData.val() <= 60"
+          },
+          "averageVoltage": {
+            ".validate": "newData.isNumber() && newData.val() >= 0 && newData.val() <= 60"
+          },
+          "storageVoltage": {
+            ".validate": "newData.isNumber() && newData.val() >= 0 && newData.val() <= 60"
+          },
+          "pulseDuration": {
+            ".validate": "newData.isNumber() && newData.val() >= 0 && newData.val() <= 60000"
+          },
+          "stepInterval": {
+            ".validate": "newData.isNumber() && newData.val() >= 0 && newData.val() <= 3600"
+          },
+          "footstepCount": {
+            ".validate": "newData.isNumber() && newData.val() >= 0 && newData.val() <= 1000000000"
+          },
+          "current": {
+            ".validate": "newData.val() === null || (newData.isNumber() && newData.val() >= -50 && newData.val() <= 50)"
+          },
+          "power": {
+            ".validate": "newData.val() === null || (newData.isNumber() && newData.val() >= -1000 && newData.val() <= 1000)"
+          },
+          "energy": {
+            ".validate": "newData.val() === null || (newData.isNumber() && newData.val() >= 0 && newData.val() <= 10000000)"
+          },
+          "wifiRssi": {
+            ".validate": "newData.isNumber() && newData.val() >= -120 && newData.val() <= 0"
+          },
+          "uptimeSec": {
+            ".validate": "newData.isNumber() && newData.val() >= 0"
+          },
+          "deviceStatus": {
+            ".validate": "newData.val() === 'ONLINE' || newData.val() === 'DEGRADED' || newData.val() === 'OFFLINE'"
+          },
+          "firmwareVersion": {
+            ".validate": "newData.isString()"
+          },
+          "loadControlAvailable": {
+            ".validate": "newData.isBoolean()"
+          },
+          "stepClass": {
+            ".validate": "newData.val() === 'LIGHT' || newData.val() === 'NORMAL' || newData.val() === 'HEAVY'"
+          },
+          "confidence": {
+            ".validate": "newData.isNumber() && newData.val() >= 0 && newData.val() <= 1"
+          }
+        },
+        "history": {
+          "$ts": {
+            ".write": "auth != null && !data.exists() && root.child('config/deviceOwners').child($deviceId).child(auth.uid).val() === true",
+            ".validate": "newData.hasChildren(['peakVoltage', 'storageVoltage', 'timestamp'])"
+          }
+        }
+      }
+    },
+    "footstepEvents": {
+      "$deviceId": {
+        ".read": "auth != null",
+        ".indexOn": [
+          ".key"
+        ],
+        "$eventKey": {
+          ".write": "auth != null && !data.exists() && root.child('config/deviceOwners').child($deviceId).child(auth.uid).val() === true",
+          ".validate": "newData.hasChildren(['deviceId', 'peakVoltage', 'storageVoltage', 'timestamp']) && $eventKey.matches(/^[0-9]{10,16}$/)",
+          "deviceId": {
+            ".validate": "newData.isString() && newData.val() === $deviceId"
+          },
+          "timestamp": {
+            ".validate": "newData.isString()"
+          },
+          "peakVoltage": {
+            ".validate": "newData.isNumber() && newData.val() >= 0 && newData.val() <= 60"
+          },
+          "averageVoltage": {
+            ".validate": "newData.isNumber() && newData.val() >= 0 && newData.val() <= 60"
+          },
+          "storageVoltage": {
+            ".validate": "newData.isNumber() && newData.val() >= 0 && newData.val() <= 60"
+          },
+          "pulseDuration": {
+            ".validate": "newData.isNumber() && newData.val() >= 0 && newData.val() <= 60000"
+          },
+          "stepInterval": {
+            ".validate": "newData.isNumber() && newData.val() >= 0 && newData.val() <= 3600"
+          },
+          "stepClass": {
+            ".validate": "newData.val() === 'LIGHT' || newData.val() === 'NORMAL' || newData.val() === 'HEAVY'"
+          },
+          "confidence": {
+            ".validate": "newData.isNumber() && newData.val() >= 0 && newData.val() <= 1"
+          }
+        }
+      }
+    },
+    "dataset": {
+      "samples": {
+        "$deviceId": {
+          ".read": "auth != null",
+          ".indexOn": [
+            "timestamp"
+          ],
+          "$sampleId": {
+            ".write": "auth != null",
+            ".validate": "newData.hasChildren(['id', 'timestamp', 'features', 'label', 'deviceId'])",
+            "id": {
+              ".validate": "newData.isString() && newData.val() === $sampleId"
+            },
+            "timestamp": {
+              ".validate": "newData.isString()"
+            },
+            "deviceId": {
+              ".validate": "newData.isString()"
+            },
+            "label": {
+              ".validate": "newData.val() === 'LIGHT' || newData.val() === 'NORMAL' || newData.val() === 'HEAVY'"
+            },
+            "participantId": {
+              ".validate": "newData.isString() && newData.val().length <= 64"
+            },
+            "source": {
+              ".validate": "newData.val() === 'live' || newData.val() === 'demo'"
+            },
+            "note": {
+              ".validate": "newData.isString() && newData.val().length <= 280"
+            },
+            "features": {
+              ".validate": "newData.hasChildren(['peakVoltage', 'averageVoltage', 'pulseDuration', 'stepInterval', 'storageVoltage'])",
+              "peakVoltage": {
+                ".validate": "newData.isNumber() && newData.val() >= 0 && newData.val() <= 60"
+              },
+              "averageVoltage": {
+                ".validate": "newData.isNumber() && newData.val() >= 0 && newData.val() <= 60"
+              },
+              "pulseDuration": {
+                ".validate": "newData.isNumber() && newData.val() >= 0 && newData.val() <= 60000"
+              },
+              "stepInterval": {
+                ".validate": "newData.isNumber() && newData.val() >= 0 && newData.val() <= 3600"
+              },
+              "storageVoltage": {
+                ".validate": "newData.isNumber() && newData.val() >= 0 && newData.val() <= 60"
+              },
+              "$other": {
+                ".validate": false
+              }
+            },
+            "$other": {
+              ".validate": false
+            }
+          }
+        }
+      }
+    },
+    "alerts": {
+      ".read": "auth != null",
+      ".indexOn": [
+        "timestamp"
+      ],
+      "$alertId": {
+        ".write": "auth != null",
+        ".validate": "newData.hasChildren(['severity', 'title', 'timestamp'])",
+        "severity": {
+          ".validate": "newData.val() === 'info' || newData.val() === 'warning' || newData.val() === 'critical'"
+        },
+        "title": {
+          ".validate": "newData.isString() && newData.val().length <= 200"
+        },
+        "timestamp": {
+          ".validate": "newData.isString()"
+        },
+        "acknowledged": {
+          ".validate": "newData.isBoolean()"
+        }
+      }
+    },
+    "systemHealth": {
+      "$deviceId": {
+        ".read": "auth != null",
+        ".write": "auth != null && root.child('config/deviceOwners').child($deviceId).child(auth.uid).val() === true"
+      }
+    },
+    "modelMetadata": {
+      ".read": "auth != null",
+      ".write": "auth != null && root.child('config/modelPublishers').child(auth.uid).val() === true"
+    },
+    "config": {
+      ".read": "auth != null",
+      ".write": false
+    }
+  }
+}
