@@ -5,7 +5,7 @@ export default {
     extend: {
       colors: {
         ink: {
-          950: '#07090c',
+          950: '#06080b',
           900: '#0b0e13',
           850: '#0f131a',
           800: '#141922',
@@ -18,8 +18,9 @@ export default {
         crit: '#f43f5e',
       },
       fontFamily: {
-        sans: ['Inter', 'ui-sans-serif', 'system-ui', 'Segoe UI', 'Roboto', 'sans-serif'],
-        mono: ['ui-monospace', 'SFMono-Regular', 'Menlo', 'monospace'],
+        display: ['Space Grotesk', 'ui-sans-serif', 'system-ui', 'sans-serif'],
+        sans: ['IBM Plex Sans', 'ui-sans-serif', 'system-ui', 'Segoe UI', 'Roboto', 'sans-serif'],
+        mono: ['JetBrains Mono', 'ui-monospace', 'SFMono-Regular', 'Menlo', 'monospace'],
       },
       boxShadow: {
         card: '0 1px 0 0 rgba(255,255,255,0.03) inset, 0 18px 40px -24px rgba(0,0,0,0.9)',

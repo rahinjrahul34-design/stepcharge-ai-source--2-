@@ -9,6 +9,7 @@ import {
   RefreshCw,
 } from 'lucide-react'
 import { useStore } from '../data/store'
+import heroImg from '../assets/stepcharge-hero.jpg'
 import { FilterBar, type PageKey } from '../components/layout'
 import { AnimatedNumber, MetricCard, Panel, PredictionTag, ProvenanceTag, StatusBadge, EmptyState } from '../components/ui'
 import { LiveVoltageChart } from '../components/charts'
@@ -96,6 +97,33 @@ export default function Overview({ go }: { go: (p: PageKey) => void }) {
 
   return (
     <div className="space-y-5">
+      {/* --------------------------- PRODUCT INTRO --------------------------- */}
+      <section className="hero-intro animate-fadeup">
+        <img
+          src={heroImg}
+          alt="Piezoelectric smart floor tile converting a footstep into stored energy"
+          width={1600}
+          height={912}
+          className="hero-intro__img"
+        />
+        <div className="hero-intro__veil" />
+        <div className="relative max-w-xl p-6 sm:p-10">
+          <span className="eyebrow">Footstep → Energy → Storage → AI → Insight</span>
+          <h1 className="display mt-4">Turn Every Footstep Into Intelligent Energy.</h1>
+          <p className="mt-4 max-w-lg text-sm leading-relaxed text-slate-300 sm:text-[15px]">
+            StepCharge AI combines piezoelectric energy harvesting, IoT monitoring, and machine
+            learning to transform human footsteps into measurable energy insights.
+          </p>
+          <div className="mt-6 flex flex-wrap gap-2">
+            <button className="btn btn-primary" onClick={() => go('live')}>
+              <Activity className="h-3.5 w-3.5" /> Open live monitoring
+            </button>
+            <button className="btn" onClick={() => go('ai')}>
+              <BrainCircuit className="h-3.5 w-3.5" /> View AI insights
+            </button>
+          </div>
+        </div>
+      </section>
       <SystemStatusPanel />
       <FilterBar
         right={

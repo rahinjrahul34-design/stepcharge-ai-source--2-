@@ -62,7 +62,7 @@ export function Logo({ compact }: { compact?: boolean }) {
       </span>
       {!compact && (
         <span className="leading-tight">
-          <span className="block text-sm font-semibold tracking-tight text-white">StepCharge AI</span>
+          <span className="block font-display text-sm font-semibold tracking-tight text-white">StepCharge AI</span>
           <span className="block text-[10px] uppercase tracking-[0.14em] text-slate-500">Energy Harvesting</span>
         </span>
       )}

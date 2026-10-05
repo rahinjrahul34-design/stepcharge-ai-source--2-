@@ -34,7 +34,7 @@ export function Panel({
           <div className="min-w-0">
             <div className="flex items-center gap-2">
               {Icon && <Icon className="h-4 w-4 shrink-0 text-volt" strokeWidth={1.8} />}
-              <h3 className="truncate text-sm font-semibold text-slate-100">{title}</h3>
+              <h3 className="truncate font-display text-sm font-semibold tracking-tight text-slate-100">{title}</h3>
               {provenance && <ProvenanceTag kind={provenance} />}
             </div>
             {subtitle && <p className="mt-1 text-xs leading-relaxed text-slate-500">{subtitle}</p>}

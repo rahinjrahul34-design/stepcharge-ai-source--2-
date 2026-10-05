@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { Zap, LogIn, ShieldCheck, ShieldAlert, Loader2 } from 'lucide-react'
+import heroImg from '../assets/stepcharge-hero.jpg'
 import { authMode, signIn } from '../services/firebase/authService'
 
 /**
@@ -35,7 +36,17 @@ export default function Login({ onSignIn }: { onSignIn: () => void }) {
   }
 
   return (
-    <div className="grid min-h-screen place-items-center px-4">
+    <div className="grid min-h-screen lg:grid-cols-2">
+      <aside className="hero-intro relative hidden rounded-none border-0 lg:block">
+        <img src={heroImg} alt="Piezoelectric smart floor tile harvesting footstep energy" width={1600} height={912} className="hero-intro__img" />
+        <div className="hero-intro__veil" />
+        <div className="absolute bottom-0 left-0 max-w-md p-10">
+          <span className="eyebrow">Smart footstep energy harvesting</span>
+          <h2 className="display mt-4">Turn Every Footstep Into Intelligent Energy.</h2>
+          <p className="mt-3 text-sm leading-relaxed text-slate-300">Piezoelectric harvesting, ESP32 telemetry and machine learning — in one monitoring platform.</p>
+        </div>
+      </aside>
+      <div className="grid place-items-center px-4 py-10">
       <div className="w-full max-w-sm">
         <div className="mb-8 text-center">
           <span className="mx-auto mb-4 grid h-12 w-12 place-items-center rounded-xl border border-volt/25 bg-volt/10">
@@ -111,6 +122,7 @@ export default function Login({ onSignIn }: { onSignIn: () => void }) {
               : 'Set VITE_FIREBASE_* in .env.local to enable real authentication and live data.'}
           </p>
         </form>
+      </div>
       </div>
     </div>
   )
