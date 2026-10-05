@@ -378,3 +378,36 @@ export const fmtDateTime = (iso: string) =>
     second: '2-digit',
   })
 export const classTone = (c: string): Tone => (c === 'HEAVY' ? 'warn' : c === 'LIGHT' ? 'info' : 'ok')
+
+/**
+ * Page-level engineering visual. The image is layered at controlled opacity
+ * behind the title so it supports — never competes with — the data below.
+ */
+export function VisualBanner({
+  image,
+  alt,
+  eyebrow,
+  title,
+  sub,
+  children,
+}: {
+  image: string
+  alt: string
+  eyebrow: string
+  title: string
+  sub?: string
+  children?: ReactNode
+}) {
+  return (
+    <section className="visual-banner animate-fadeup">
+      <img src={image} alt={alt} width={1400} height={560} loading="lazy" decoding="async" className="visual-banner__img" />
+      <div className="visual-banner__veil" />
+      <div className="relative flex flex-col gap-3 p-5 sm:p-7 md:max-w-[55%]">
+        <span className="eyebrow self-start">{eyebrow}</span>
+        <h1 className="text-2xl font-semibold tracking-tight text-white sm:text-3xl">{title}</h1>
+        {sub && <p className="text-sm leading-relaxed text-slate-300">{sub}</p>}
+        {children}
+      </div>
+    </section>
+  )
+}

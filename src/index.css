@@ -93,3 +93,32 @@ body.theme-light {
 ::-webkit-scrollbar-track {
   background: transparent;
 }
+
+/* ---------------------------- page visual banner ---------------------------- */
+@layer components {
+  .visual-banner {
+    @apply relative isolate overflow-hidden rounded-xl border border-white/[0.07] bg-ink-900;
+  }
+  .visual-banner__img {
+    @apply absolute inset-0 -z-10 h-full w-full object-cover object-right opacity-60;
+  }
+  .visual-banner__veil {
+    @apply pointer-events-none absolute inset-0 -z-10 bg-gradient-to-r from-ink-950 via-ink-950/85 to-ink-950/10;
+  }
+  .arch-node {
+    @apply relative flex min-w-[118px] flex-col items-start gap-1 rounded-lg border border-white/[0.07] bg-white/[0.02] px-3 py-2.5 text-left transition-colors hover:border-volt/40 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-volt/60;
+  }
+  .arch-node[aria-pressed='true'] {
+    @apply border-volt/50 bg-volt/[0.07];
+  }
+  .arch-link {
+    @apply relative h-px w-5 shrink-0 overflow-hidden bg-white/10;
+  }
+  .arch-link::after {
+    content: '';
+    @apply absolute inset-y-0 left-0 w-2 bg-volt animate-flowx;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .arch-link::after, .animate-pulsering, .animate-fadeup { animation: none !important; }
+}

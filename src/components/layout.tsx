@@ -24,6 +24,8 @@ import {
   Zap,
   type LucideIcon,
   LogOut,
+  PanelLeftClose,
+  PanelLeftOpen,
 } from 'lucide-react'
 import { useStore } from '../data/store'
 import { StatusBadge, fmtDateTime } from './ui'
@@ -134,11 +136,15 @@ export function Sidebar({
   setPage,
   open,
   onClose,
+  collapsed = false,
+  onToggleCollapsed,
 }: {
   page: PageKey
   setPage: (p: PageKey) => void
   open: boolean
   onClose: () => void
+  collapsed?: boolean
+  onToggleCollapsed?: () => void
 }) {
   const { health, packet, mode, isStale } = useStore()
   const secs = Math.max(1, Math.round(health.lastDataMs / 1000))
@@ -147,12 +153,21 @@ export function Sidebar({
     <>
       {open && <div className="fixed inset-0 z-30 bg-black/60 lg:hidden" onClick={onClose} />}
       <aside
-        className={`fixed inset-y-0 left-0 z-40 flex w-64 flex-col border-r border-white/[0.06] bg-ink-900/85 backdrop-blur-xl transition-transform lg:translate-x-0 ${
+        className={`fixed inset-y-0 left-0 z-40 flex w-64 flex-col ${collapsed ? 'lg:w-20' : ''} border-r border-white/[0.06] bg-ink-900/85 backdrop-blur-xl transition-transform lg:translate-x-0 ${
           open ? 'translate-x-0' : '-translate-x-full'
         }`}
       >
         <div className="flex items-center justify-between px-4 py-5">
-          <Logo />
+          <Logo compact={collapsed} />
+          {onToggleCollapsed && (
+            <button
+              className="hidden rounded-md p-1 text-slate-500 hover:text-slate-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-volt/60 lg:inline-flex"
+              onClick={onToggleCollapsed}
+              aria-label={collapsed ? 'Expand sidebar' : 'Collapse sidebar'}
+            >
+              {collapsed ? <PanelLeftOpen className="h-4 w-4" /> : <PanelLeftClose className="h-4 w-4" />}
+            </button>
+          )}
           <button className="text-slate-500 lg:hidden" onClick={onClose}>
             <X className="h-4 w-4" />
           </button>
@@ -178,17 +193,17 @@ export function Sidebar({
                   className={`h-4 w-4 ${active ? 'text-volt' : 'text-slate-500 group-hover:text-slate-300'}`}
                   strokeWidth={1.8}
                 />
-                {label}
+                <span className={collapsed ? 'lg:sr-only' : ''}>{label}</span>
               </button>
             )
           })}
         </nav>
 
-        <div className="mx-3 mb-2">
+        <div className={`mx-3 mb-2 ${collapsed ? 'lg:hidden' : ''}`}>
           <DataSourceSwitch />
         </div>
 
-        <div className="m-3 mt-0 rounded-lg border border-white/[0.06] bg-white/[0.02] p-3">
+        <div className={`m-3 mt-0 rounded-lg ${collapsed ? 'lg:hidden' : ''} border border-white/[0.06] bg-white/[0.02] p-3`}>
           <div className="flex items-center justify-between">
             <StatusBadge tone={online ? 'ok' : 'crit'} pulse={online}>
               ESP32 {online ? 'ONLINE' : 'OFFLINE'}
@@ -533,12 +548,25 @@ export function DashboardLayout({
   onSignOut: () => void
 }) {
   const [navOpen, setNavOpen] = useState(false)
+  const [collapsed, setCollapsed] = useState(() => localStorage.getItem('sc.sidebar') === 'collapsed')
+  const toggleCollapsed = () =>
+    setCollapsed((c) => {
+      localStorage.setItem('sc.sidebar', c ? 'expanded' : 'collapsed')
+      return !c
+    })
   const [bell, setBell] = useState(false)
   const { alerts } = useStore()
   const unread = alerts.filter((a) => !a.read).length
   return (
-    <div className="min-h-screen lg:pl-64">
-      <Sidebar page={page} setPage={setPage} open={navOpen} onClose={() => setNavOpen(false)} />
+    <div className={`min-h-screen transition-[padding] ${collapsed ? 'lg:pl-20' : 'lg:pl-64'}`}>
+      <Sidebar
+        page={page}
+        setPage={setPage}
+        open={navOpen}
+        onClose={() => setNavOpen(false)}
+        collapsed={collapsed}
+        onToggleCollapsed={toggleCollapsed}
+      />
       <Topbar
         onMenu={() => setNavOpen(true)}
         onBell={() => setBell(true)}

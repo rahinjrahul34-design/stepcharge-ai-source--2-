@@ -1,7 +1,8 @@
 import { BrainCircuit, ShieldAlert, Workflow } from 'lucide-react'
 import { useStore } from '../data/store'
 import { FilterBar } from '../components/layout'
-import { EmptyState, Panel, SectionTitle, StatusBadge } from '../components/ui'
+import aiImg from '../assets/visual-ai-classification.jpg'
+import { EmptyState, Panel, StatusBadge, VisualBanner } from '../components/ui'
 import { AIClassificationCard, AIInsightCard, AnomalyCard, EnergyScoreCard } from '../components/cards'
 
 const PIPELINE = [
@@ -18,7 +19,7 @@ export default function AIInsights() {
   const { insights, anomalies, anomalyLevel, settings, stats, model, mlKind } = useStore()
   return (
     <div className="space-y-5">
-      <SectionTitle title="AI Insights" sub="Model output, explainability, anomaly review and the project performance index" />
+      <VisualBanner image={aiImg} alt="Three footstep signal signatures separated by a classification model" eyebrow="Light · Normal · Heavy" title="AI Insights" sub="Model output, explainability, system anomaly review and the project performance index." />
       <FilterBar />
 
       <Panel

@@ -8,6 +8,7 @@ import {
   Play,
   RefreshCw,
 } from 'lucide-react'
+import { SystemArchitecture } from '../components/architecture'
 import { useStore } from '../data/store'
 import heroImg from '../assets/stepcharge-hero.jpg'
 import { FilterBar, type PageKey } from '../components/layout'
@@ -125,6 +126,7 @@ export default function Overview({ go }: { go: (p: PageKey) => void }) {
         </div>
       </section>
       <SystemStatusPanel />
+      <SystemArchitecture />
       <FilterBar
         right={
           mode === 'demo' ? (

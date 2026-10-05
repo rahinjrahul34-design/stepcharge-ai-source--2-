@@ -1,3 +1,5 @@
+import energyImg from '../assets/visual-energy-flow.jpg'
+import { VisualBanner } from '../components/ui'
 import { Footprints, Zap, BarChart3, Scale } from 'lucide-react'
 import { useStore } from '../data/store'
 import { FilterBar } from '../components/layout'
@@ -99,9 +101,12 @@ export function EnergyAnalytics() {
   const { stats, settings } = useStore()
   return (
     <div className="space-y-5">
-      <SectionTitle
+      <VisualBanner
+        image={energyImg}
+        alt="Piezo tile, rectifier, supercapacitor and load connected by an energy path"
+        eyebrow="Piezo → Rectifier → Storage → Load"
         title="Energy Analytics"
-        sub="Measured voltage · calculated power · estimated energy — each clearly separated"
+        sub="Measured voltage · calculated power · estimated energy (E = ½CV²) — each clearly separated."
       />
       <FilterBar />
 

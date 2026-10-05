@@ -1,6 +1,7 @@
 import { Cpu, Gauge, Signal, Timer, Database, Wifi } from 'lucide-react'
 import { useStore } from '../data/store'
-import { MetricCard, Panel, SectionTitle, EmptyState, StatusBadge } from '../components/ui'
+import iotImg from '../assets/visual-iot-network.jpg'
+import { MetricCard, Panel, EmptyState, StatusBadge, VisualBanner } from '../components/ui'
 import { SystemHealthCard, AnomalyCard, PiezoArrayHealth } from '../components/cards'
 import { StorageChart } from '../components/charts'
 
@@ -17,7 +18,7 @@ export default function Health() {
 
   return (
     <div className="space-y-5">
-      <SectionTitle title="System Health" sub="Device, link and pipeline status for the StepCharge node" />
+      <VisualBanner image={iotImg} alt="ESP32 node linked over Wi-Fi to cloud infrastructure and a dashboard" eyebrow="ESP32 → Wi-Fi → Firebase → ML → Dashboard" title="System Health" sub="Device, link and pipeline status for the StepCharge node." />
 
       <SystemHealthCard />
 
