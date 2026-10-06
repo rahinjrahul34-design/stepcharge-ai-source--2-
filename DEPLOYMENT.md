@@ -140,3 +140,53 @@ curl http://localhost:8000/health
 - `stepcharge-backend`: Node.js 20 Express TypeScript API on port 5000 with MongoDB Mongoose and Socket.IO.
 - `stepcharge-ml-service`: Python 3.11 FastAPI microservice on port 8000 with Scikit-Learn models.
 - `stepcharge-mongodb`: Persistent local MongoDB 7.0 container (or connect to MongoDB Atlas).
+
+---
+
+## 6. Required Backend Environment
+
+Use `backend/.env.example` as the backend environment template. At minimum, configure:
+
+```bash
+MONGODB_URI=mongodb://localhost:27017/stepcharge
+JWT_SECRET=<32-byte-or-longer-random-secret>
+FRONTEND_URL=http://localhost:5173
+ML_SERVICE_URL=http://localhost:8000
+GOOGLE_CLIENT_ID=<google-oauth-client-id>
+GOOGLE_CLIENT_SECRET=<google-oauth-client-secret>
+GOOGLE_CALLBACK_URL=http://localhost:5000/api/auth/google/callback
+ADMIN_EMAILS=admin@example.com
+DEVICE_AUTO_PROVISION=false
+```
+
+If `GOOGLE_CLIENT_ID` or `GOOGLE_CLIENT_SECRET` is missing, the backend intentionally returns `GOOGLE_OAUTH_NOT_CONFIGURED` instead of generating a broken Google login URL.
+
+---
+
+## 7. Initial Admin and Device Provisioning
+
+The secure bootstrap path is environment-based initial admin assignment:
+
+1. Set `ADMIN_EMAILS` or `INITIAL_ADMIN_EMAIL` before first login.
+2. Sign in with Google using one of those email addresses.
+3. Register devices through the authenticated admin-only `POST /api/devices` route.
+4. Copy the returned device API key into the ESP32 firmware secret configuration.
+
+Do not make `POST /api/devices` public. `DEVICE_AUTO_PROVISION` is `false` by default and should only be enabled for controlled development or lab setup where unregistered device IDs are expected and monitored.
+
+---
+
+## 8. ML Service Setup
+
+The backend uses `ML_SERVICE_URL` for prediction, health, and training calls. The ML service can be healthy while no trained model is loaded:
+
+- Unreachable ML service: backend returns `ML_SERVICE_UNAVAILABLE`.
+- Reachable service without a trained model: backend returns `MODEL_NOT_TRAINED`.
+
+Train or load a model through the existing ML workflow before expecting `/api/ml/predict` to classify live footsteps.
+
+---
+
+## 9. Live and Demo Data
+
+Live mode must use real ESP32 telemetry authenticated with the device API key. Demo mode may use controlled demo data, but it must remain clearly labeled as `DEMO` and must not silently replace live telemetry. Energy values based on capacitor voltage use the project convention of estimated stored energy, not measured harvested energy unless current sensing is installed and producing real measurements.

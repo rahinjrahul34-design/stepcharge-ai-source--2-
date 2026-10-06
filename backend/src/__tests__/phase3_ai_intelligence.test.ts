@@ -218,10 +218,13 @@ describe('Phase 3: AI Intelligence, Model Registry & Analytics Suite', () => {
       {
         deviceId: testDeviceId,
         timestamp: new Date(),
-        peakVoltage: 3.2,
-        averageVoltage: 1.4,
-        pulseDuration: 220,
-        stepInterval: 1.1,
+        features: {
+          peakVoltage: 3.2,
+          averageVoltage: 1.4,
+          pulseDuration: 220,
+          stepInterval: 1.1,
+          storageVoltage: 4.0,
+        },
         stepClass: 'NORMAL',
         confidence: 0.85,
         measuredEnergyJ: 0.045, // real current measured
@@ -229,10 +232,13 @@ describe('Phase 3: AI Intelligence, Model Registry & Analytics Suite', () => {
       {
         deviceId: testDeviceId,
         timestamp: new Date(),
-        peakVoltage: 4.8,
-        averageVoltage: 2.1,
-        pulseDuration: 280,
-        stepInterval: 0.9,
+        features: {
+          peakVoltage: 4.8,
+          averageVoltage: 2.1,
+          pulseDuration: 280,
+          stepInterval: 0.9,
+          storageVoltage: 4.2,
+        },
         stepClass: 'HEAVY',
         confidence: 0.92,
         measuredEnergyJ: 0.082,
@@ -272,16 +278,26 @@ describe('Phase 3: AI Intelligence, Model Registry & Analytics Suite', () => {
 
     beforeEach(() => {
       // Mock Footstep.aggregate
-      vi.spyOn(Footstep, 'aggregate').mockResolvedValue([
-        {
-          _id: null,
-          totalSteps: 2,
-          sumPeakV: 8.0,
-          avgPeakV: 4.0,
-          sumMeasuredEnergy: 0.127,
-          measuredEnergyCount: 2,
-        },
-      ])
+      vi.spyOn(Footstep, 'aggregate').mockImplementation((pipeline: any[]) => {
+        const group = pipeline.find((stage) => stage.$group)?.$group || {}
+        expect(group.sumPeakV.$sum).toBe('$features.peakVoltage')
+        expect(group.avgPeakV.$avg).toBe('$features.peakVoltage')
+
+        const matched = mockFootsteps.filter((step) => step.deviceId === testDeviceId)
+        if (matched.length === 0) return Promise.resolve([]) as any
+
+        return Promise.resolve([
+          {
+            _id: null,
+            totalSteps: matched.length,
+            sumPeakV: matched.reduce((sum, step) => sum + step.features.peakVoltage, 0),
+            avgPeakV:
+              matched.reduce((sum, step) => sum + step.features.peakVoltage, 0) / matched.length,
+            sumMeasuredEnergy: matched.reduce((sum, step) => sum + step.measuredEnergyJ, 0),
+            measuredEnergyCount: matched.filter((step) => step.measuredEnergyJ > 0).length,
+          },
+        ]) as any
+      })
 
       // Mock Telemetry.aggregate
       vi.spyOn(Telemetry, 'aggregate').mockResolvedValue([
@@ -337,10 +353,44 @@ describe('Phase 3: AI Intelligence, Model Registry & Analytics Suite', () => {
     it('aggregates real measured energy and computes energy per step', async () => {
       const analytics = await getEnergyAnalytics(testDeviceId, 'day')
       expect(analytics.totalFootsteps).toBe(2)
+      expect(analytics.averageStepVoltageV).toBe(4)
       expect(analytics.totalMeasuredEnergyJ).toBe(0.127) // 0.045 + 0.082
       expect(analytics.energyPerStepJ).toBe(0.0635) // 0.127 / 2
       expect(analytics.energyPerStepType).toBe('MEASURED')
       expect(analytics.averagePowerMw).toBe(25) // 0.025 W * 1000
+    })
+
+    it('handles zero, one, and multiple realistic nested-footstep aggregates without null formatting failures', async () => {
+      const originalFootsteps = [...mockFootsteps]
+
+      for (const sample of [
+        [],
+        [originalFootsteps[0]],
+        originalFootsteps,
+      ]) {
+        vi.mocked(Footstep.aggregate).mockImplementationOnce((pipeline: any[]) => {
+          const group = pipeline.find((stage) => stage.$group)?.$group || {}
+          expect(group.sumPeakV.$sum).toBe('$features.peakVoltage')
+          expect(group.avgPeakV.$avg).toBe('$features.peakVoltage')
+
+          if (sample.length === 0) return Promise.resolve([]) as any
+          return Promise.resolve([
+            {
+              _id: null,
+              totalSteps: sample.length,
+              sumPeakV: sample.reduce((sum, step) => sum + step.features.peakVoltage, 0),
+              avgPeakV: sample.reduce((sum, step) => sum + step.features.peakVoltage, 0) / sample.length,
+              sumMeasuredEnergy: sample.reduce((sum, step) => sum + step.measuredEnergyJ, 0),
+              measuredEnergyCount: sample.filter((step) => step.measuredEnergyJ > 0).length,
+            },
+          ]) as any
+        })
+
+        const analytics = await getEnergyAnalytics(testDeviceId, 'day')
+        expect(Number.isFinite(analytics.averageStepVoltageV)).toBe(true)
+        expect(Number.isFinite(analytics.estimatedStoredEnergyJ)).toBe(true)
+        expect(analytics.averageStepVoltageV).not.toBeNull()
+      }
     })
 
     it('reports supercapacitor storage intelligence with safe voltage limits', async () => {

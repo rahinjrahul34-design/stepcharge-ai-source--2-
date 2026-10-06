@@ -13,6 +13,13 @@ export interface MlPredictionResponse {
   modelVersion?: string
 }
 
+export type MlPredictionErrorCode = 'ML_SERVICE_UNAVAILABLE' | 'MODEL_NOT_TRAINED'
+
+export interface MlPredictionResult {
+  prediction: MlPredictionResponse | null
+  errorCode?: MlPredictionErrorCode
+}
+
 export interface MlHealthResponse {
   reachable: boolean
   modelLoaded: boolean
@@ -81,7 +88,7 @@ export async function checkMlHealth(): Promise<MlHealthResponse> {
   }
 }
 
-export async function predictFootstep(features: IStepFeatures): Promise<MlPredictionResponse | null> {
+export async function predictFootstep(features: IStepFeatures): Promise<MlPredictionResult> {
   const url = `${config.mlServiceUrl}/predict`
   const controller = new AbortController()
   const timeoutId = setTimeout(() => controller.abort(), 4000)
@@ -95,15 +102,19 @@ export async function predictFootstep(features: IStepFeatures): Promise<MlPredic
     })
 
     if (!res.ok) {
+      const body = await res.text().catch(() => '')
+      if (res.status === 503 && body.includes('MODEL_NOT_CONNECTED')) {
+        return { prediction: null, errorCode: 'MODEL_NOT_TRAINED' }
+      }
       console.warn(`[ML Service] Predict returned status ${res.status}`)
-      return null
+      return { prediction: null, errorCode: 'ML_SERVICE_UNAVAILABLE' }
     }
 
     const data = (await res.json()) as MlPredictionResponse
-    return data
+    return { prediction: data }
   } catch (error) {
     console.warn('[ML Service] Prediction request failed:', error instanceof Error ? error.message : error)
-    return null
+    return { prediction: null, errorCode: 'ML_SERVICE_UNAVAILABLE' }
   } finally {
     clearTimeout(timeoutId)
   }

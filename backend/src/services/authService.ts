@@ -5,11 +5,13 @@ import { config } from '../config/env.js'
 import { User, IUser, UserRole } from '../models/User.js'
 import { AuditLog } from '../models/AuditLog.js'
 
-const googleClient = new OAuth2Client(
-  config.google.clientId,
-  config.google.clientSecret,
-  config.google.callbackUrl,
-)
+function createGoogleClient(): OAuth2Client {
+  return new OAuth2Client(
+    config.google.clientId,
+    config.google.clientSecret,
+    config.google.callbackUrl,
+  )
+}
 
 export interface GoogleProfile {
   googleId: string
@@ -18,7 +20,19 @@ export interface GoogleProfile {
   avatarUrl?: string
 }
 
+export function isGoogleOAuthConfigured(): boolean {
+  return Boolean(config.google.clientId && config.google.clientSecret)
+}
+
+export function requireGoogleOAuthConfigured(): void {
+  if (!isGoogleOAuthConfigured()) {
+    throw new Error('Google OAuth is not configured.')
+  }
+}
+
 export async function verifyGoogleIdToken(idToken: string): Promise<GoogleProfile> {
+  requireGoogleOAuthConfigured()
+  const googleClient = createGoogleClient()
   const ticket = await googleClient.verifyIdToken({
     idToken,
     audience: config.google.clientId,
@@ -37,6 +51,8 @@ export async function verifyGoogleIdToken(idToken: string): Promise<GoogleProfil
 }
 
 export async function exchangeOAuthCode(code: string): Promise<GoogleProfile> {
+  requireGoogleOAuthConfigured()
+  const googleClient = createGoogleClient()
   const { tokens } = await googleClient.getToken(code)
   if (!tokens.id_token) {
     throw new Error('Google OAuth exchange failed to return an id_token.')
@@ -51,6 +67,8 @@ export function generateOAuthState(): string {
 }
 
 export function generateGoogleAuthUrl(state?: string): string {
+  requireGoogleOAuthConfigured()
+  const googleClient = createGoogleClient()
   return googleClient.generateAuthUrl({
     access_type: 'offline',
     scope: ['openid', 'email', 'profile'],

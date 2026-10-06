@@ -55,11 +55,11 @@ export async function recordFootstep(input: FootstepInput): Promise<IFootstep> {
   // If no on-device classification was supplied, consult Python ML Service
   if (predictionSource === 'UNCLASSIFIED') {
     const mlResult = await predictFootstep(features)
-    if (mlResult) {
-      finalClass = mlResult.class
-      finalConfidence = mlResult.confidence
-      probabilities = mlResult.probabilities
-      modelVersion = mlResult.modelVersion || 'v1.0'
+    if (mlResult.prediction) {
+      finalClass = mlResult.prediction.class
+      finalConfidence = mlResult.prediction.confidence
+      probabilities = mlResult.prediction.probabilities
+      modelVersion = mlResult.prediction.modelVersion || 'v1.0'
       predictionSource = 'ML PREDICTION'
     }
   }

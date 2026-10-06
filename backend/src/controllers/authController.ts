@@ -8,11 +8,23 @@ import {
   setSessionCookie,
   clearSessionCookie,
   generateOAuthState,
+  isGoogleOAuthConfigured,
 } from '../services/authService.js'
 import { config } from '../config/env.js'
 import { AuditLog } from '../models/AuditLog.js'
 
 export async function getAuthUrl(req: Request, res: Response): Promise<void> {
+  if (!isGoogleOAuthConfigured()) {
+    res.status(503).json({
+      success: false,
+      error: {
+        code: 'GOOGLE_OAUTH_NOT_CONFIGURED',
+        message: 'Google OAuth is not configured.',
+      },
+    })
+    return
+  }
+
   const state = generateOAuthState()
 
   // Store CSRF state in temporary HttpOnly cookie
@@ -29,6 +41,11 @@ export async function getAuthUrl(req: Request, res: Response): Promise<void> {
 }
 
 export async function handleGoogleCallback(req: Request, res: Response): Promise<void> {
+  if (!isGoogleOAuthConfigured()) {
+    res.redirect(`${config.frontendUrl}/?auth_error=oauth_not_configured`)
+    return
+  }
+
   const code = req.query.code as string
   const returnedState = req.query.state as string | undefined
   const savedState = req.cookies?.stepcharge_oauth_state
@@ -61,6 +78,17 @@ export async function handleGoogleCallback(req: Request, res: Response): Promise
 }
 
 export async function loginWithGoogleIdToken(req: Request, res: Response): Promise<void> {
+  if (!isGoogleOAuthConfigured()) {
+    res.status(503).json({
+      success: false,
+      error: {
+        code: 'GOOGLE_OAUTH_NOT_CONFIGURED',
+        message: 'Google OAuth is not configured.',
+      },
+    })
+    return
+  }
+
   const { idToken } = req.body
   if (!idToken || typeof idToken !== 'string') {
     res.status(400).json({

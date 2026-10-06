@@ -145,13 +145,16 @@ export async function predict(req: Request, res: Response): Promise<void> {
     return
   }
 
-  const prediction = await predictFootstep(features)
+  const { prediction, errorCode } = await predictFootstep(features)
   if (!prediction) {
-    res.status(503).json({
+    const isModelNotTrained = errorCode === 'MODEL_NOT_TRAINED'
+    res.status(isModelNotTrained ? 409 : 503).json({
       success: false,
       error: {
-        code: 'ML_SERVICE_UNAVAILABLE',
-        message: 'The machine learning inference service is currently offline or unreachable.',
+        code: isModelNotTrained ? 'MODEL_NOT_TRAINED' : 'ML_SERVICE_UNAVAILABLE',
+        message: isModelNotTrained
+          ? 'ML service is running, but no trained model is currently available.'
+          : 'ML service is unavailable.',
       },
     })
     return

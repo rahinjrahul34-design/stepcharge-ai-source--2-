@@ -88,8 +88,8 @@ export async function getEnergyAnalytics(
       $group: {
         _id: null,
         totalSteps: { $sum: 1 },
-        sumPeakV: { $sum: '$peakVoltage' },
-        avgPeakV: { $avg: '$peakVoltage' },
+        sumPeakV: { $sum: '$features.peakVoltage' },
+        avgPeakV: { $avg: '$features.peakVoltage' },
         sumMeasuredEnergy: { $sum: '$measuredEnergyJ' },
         measuredEnergyCount: {
           $sum: { $cond: [{ $gt: ['$measuredEnergyJ', 0] }, 1, 0] },

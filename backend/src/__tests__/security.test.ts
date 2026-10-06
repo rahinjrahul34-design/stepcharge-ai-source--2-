@@ -385,6 +385,47 @@ describe('StepCharge AI Phase 1 Security Hardening Test Suite', () => {
       expect(res.status).toBe(400)
       expect(res.body.error.code).toBe('PHYSICAL_BOUNDS_ERROR')
     })
+
+    it('29b. Reports MODEL_NOT_TRAINED when ML service is healthy but model is missing', async () => {
+      vi.spyOn(global, 'fetch').mockResolvedValueOnce({
+        ok: false,
+        status: 503,
+        text: async () => '{"detail":"MODEL_NOT_CONNECTED: no trained model available."}',
+      } as any)
+
+      const res = await request(app)
+        .post('/api/ml/predict')
+        .send({
+          features: {
+            peakVoltage: 3.5,
+            averageVoltage: 2.0,
+            pulseDuration: 100,
+            stepInterval: 500,
+            storageVoltage: 3.8,
+          },
+        })
+      expect(res.status).toBe(409)
+      expect(res.body.error.code).toBe('MODEL_NOT_TRAINED')
+      expect(res.body.error.message).toContain('no trained model')
+    })
+
+    it('29c. Reports ML_SERVICE_UNAVAILABLE when ML service cannot be reached', async () => {
+      vi.spyOn(global, 'fetch').mockRejectedValueOnce(new Error('connect ECONNREFUSED'))
+
+      const res = await request(app)
+        .post('/api/ml/predict')
+        .send({
+          features: {
+            peakVoltage: 3.5,
+            averageVoltage: 2.0,
+            pulseDuration: 100,
+            stepInterval: 500,
+            storageVoltage: 3.8,
+          },
+        })
+      expect(res.status).toBe(503)
+      expect(res.body.error.code).toBe('ML_SERVICE_UNAVAILABLE')
+    })
   })
 
   // --------------------------------------------------------------------------
@@ -451,10 +492,29 @@ describe('StepCharge AI Phase 1 Security Hardening Test Suite', () => {
       expect(res.text).not.toContain('mongodb+srv://')
     })
 
-    it('31. Google OAuth Client Secret is NEVER exposed', async () => {
+    it('31. Google OAuth Client Secret is NEVER exposed and missing config fails closed', async () => {
+      const originalClientId = config.google.clientId
+      const originalClientSecret = config.google.clientSecret
+      config.google.clientId = ''
+      config.google.clientSecret = ''
+
       const res = await request(app).get('/api/auth/google/url')
-      expect(res.status).toBe(200)
-      expect(res.text).not.toContain(config.google.clientSecret)
+      expect(res.status).toBe(503)
+      expect(res.body.error.code).toBe('GOOGLE_OAUTH_NOT_CONFIGURED')
+      expect(res.text).not.toContain('client_id=')
+
+      config.google.clientId = 'google-client-id.apps.googleusercontent.com'
+      config.google.clientSecret = 'google-client-secret-never-returned'
+
+      const configuredRes = await request(app).get('/api/auth/google/url')
+      expect(configuredRes.status).toBe(200)
+      expect(config.google.clientSecret.length).toBeGreaterThan(0)
+      expect(configuredRes.text).toContain(encodeURIComponent(config.google.clientId))
+      expect(configuredRes.text).not.toContain(config.google.clientSecret)
+      expect(configuredRes.body.data.url).not.toContain('client_secret')
+
+      config.google.clientId = originalClientId
+      config.google.clientSecret = originalClientSecret
     })
 
     it('32. JWT session secret is NEVER exposed', async () => {

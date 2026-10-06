@@ -1,7 +1,7 @@
 # Stage 1: Build React + Vite app
 FROM node:20-alpine AS builder
 WORKDIR /app
-COPY package*.json tsconfig*.json vite.config.ts index.html ./
+COPY package*.json tsconfig*.json vite.config.ts index.html postcss.config.js tailwind.config.js ./
 RUN npm ci
 COPY src ./src
 COPY public ./public
