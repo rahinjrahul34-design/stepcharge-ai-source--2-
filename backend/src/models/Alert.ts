@@ -17,6 +17,8 @@ export interface IAlert extends Document {
   resolved: boolean
   resolvedAt?: Date
   resolvedBy?: mongoose.Types.ObjectId
+  read: boolean
+  readAt?: Date
   createdAt: Date
   updatedAt: Date
 }
@@ -81,6 +83,14 @@ const AlertSchema = new Schema<IAlert>(
       type: Schema.Types.ObjectId,
       ref: 'User',
     },
+    read: {
+      type: Boolean,
+      default: false,
+      index: true,
+    },
+    readAt: {
+      type: Date,
+    },
   },
   {
     timestamps: true,
@@ -89,5 +99,6 @@ const AlertSchema = new Schema<IAlert>(
 
 AlertSchema.index({ deviceId: 1, createdAt: -1 })
 AlertSchema.index({ resolved: 1, createdAt: -1 })
+AlertSchema.index({ deviceId: 1, read: 1, createdAt: -1 })
 
 export const Alert = mongoose.model<IAlert>('Alert', AlertSchema)

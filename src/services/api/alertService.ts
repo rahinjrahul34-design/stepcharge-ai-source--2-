@@ -30,6 +30,7 @@ export async function subscribeAlerts(
       threshold: alert.threshold,
       action: alert.action,
       resolved: alert.resolved,
+      read: Boolean(alert.read),
     }
     cachedAlerts = [formatted, ...cachedAlerts.filter((a) => a.id !== formatted.id)].slice(0, 60)
     onAlerts(cachedAlerts)
@@ -43,10 +44,17 @@ export async function subscribeAlerts(
 
   socket.on('alert:created', handleCreated)
   socket.on('alert:resolved', handleResolved)
+  const handleUpdated = (alert: any) => {
+    const id = alert.id || alert._id
+    cachedAlerts = cachedAlerts.map((a) => (a.id === id ? { ...a, read: Boolean(alert.read) } : a))
+    onAlerts(cachedAlerts)
+  }
+  socket.on('alert:updated', handleUpdated)
 
   return () => {
     socket.off('alert:created', handleCreated)
     socket.off('alert:resolved', handleResolved)
+    socket.off('alert:updated', handleUpdated)
   }
 }
 
@@ -64,4 +72,12 @@ export async function resolveAlert(id: string): Promise<void> {
   await fetchApi(`/alerts/${id}/resolve`, {
     method: 'POST',
   })
+}
+
+export async function markAlertRead(id: string): Promise<void> {
+  await fetchApi(`/alerts/${encodeURIComponent(id)}/read`, { method: 'PATCH' })
+}
+
+export async function markAllAlertsRead(): Promise<void> {
+  await fetchApi('/alerts/read-all', { method: 'POST' })
 }

@@ -1,9 +1,20 @@
-import { describe, it, expect } from 'vitest'
+import { afterAll, beforeAll, describe, it, expect } from 'vitest'
 import request from 'supertest'
 import { createApp } from '../app.js'
+import { config } from '../config/env.js'
 
 describe('StepCharge AI API Integration Tests', () => {
   const app = createApp()
+  const originalClientId = config.google.clientId
+  const originalClientSecret = config.google.clientSecret
+  beforeAll(() => {
+    config.google.clientId = 'api-test-client.apps.googleusercontent.com'
+    config.google.clientSecret = 'api-test-secret'
+  })
+  afterAll(() => {
+    config.google.clientId = originalClientId
+    config.google.clientSecret = originalClientSecret
+  })
 
   it('GET /api/system/health returns system status', async () => {
     const res = await request(app).get('/api/system/health')

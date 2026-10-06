@@ -26,6 +26,7 @@ import {
 } from '../services/api/datasetService'
 import { deviceId as envDeviceId } from '../services/api/client'
 import { fetchModelMetadata } from '../services/api/deviceService'
+import { markAlertRead as apiMarkAlertRead, markAllAlertsRead, subscribeAlerts } from '../services/api/alertService'
 import { EMPTY_LOADS } from './types'
 import type {
   AiInsight,
@@ -133,7 +134,8 @@ interface Ctx {
   settings: Settings
   updateSettings: (p: Partial<Settings>) => void
   alerts: AlertItem[]
-  markAllRead: () => void
+  markAlertRead: (id: string) => Promise<void>
+  markAllRead: () => Promise<void>
   anomalies: Anomaly[]
   anomalyLevel: 'NORMAL' | 'WARNING' | 'CRITICAL'
   insights: AiInsight[]
@@ -345,6 +347,18 @@ export function StoreProvider({ children }: { children: ReactNode }) {
     },
     [alertsEnabled, pushAlert],
   )
+
+  useEffect(() => {
+    if (mode !== 'live') return
+    let cleanup: (() => void) | undefined
+    void subscribeAlerts(
+      (next) => setAlerts(next),
+      (error) => setConnectionError(error.message),
+    ).then((off) => {
+      cleanup = off
+    })
+    return () => cleanup?.()
+  }, [mode, attempt])
 
   /* -------------------- connect / teardown the data source --------------- */
   useEffect(() => {
@@ -890,7 +904,26 @@ export function StoreProvider({ children }: { children: ReactNode }) {
     settings,
     updateSettings,
     alerts,
-    markAllRead: () => setAlerts((a) => a.map((x) => ({ ...x, read: true }))),
+    markAlertRead: async (id) => {
+      const previous = alerts
+      setAlerts((items) => items.map((item) => (item.id === id ? { ...item, read: true } : item)))
+      try {
+        if (mode === 'live') await apiMarkAlertRead(id)
+      } catch (error) {
+        setAlerts(previous)
+        throw error
+      }
+    },
+    markAllRead: async () => {
+      const previous = alerts
+      setAlerts((items) => items.map((item) => ({ ...item, read: true })))
+      try {
+        if (mode === 'live') await markAllAlertsRead()
+      } catch (error) {
+        setAlerts(previous)
+        throw error
+      }
+    },
     anomalies,
     anomalyLevel,
     insights,

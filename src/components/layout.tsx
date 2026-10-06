@@ -1,4 +1,4 @@
-import { useEffect, useState, type ReactNode } from 'react'
+import { useEffect, useRef, useState, type ReactNode } from 'react'
 import {
   Activity,
   AlertTriangle,
@@ -272,10 +272,27 @@ export function Topbar({
 }) {
   const { health, mode, packet, connection, connectionError, retry, isStale } = useStore()
   const [now, setNow] = useState(new Date())
+  const [profileOpen, setProfileOpen] = useState(false)
+  const profileRef = useRef<HTMLDivElement>(null)
   useEffect(() => {
     const id = setInterval(() => setNow(new Date()), 1000)
     return () => clearInterval(id)
   }, [])
+  useEffect(() => {
+    if (!profileOpen) return
+    const onPointerDown = (event: PointerEvent) => {
+      if (!profileRef.current?.contains(event.target as Node)) setProfileOpen(false)
+    }
+    const onKeyDown = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') setProfileOpen(false)
+    }
+    document.addEventListener('pointerdown', onPointerDown)
+    document.addEventListener('keydown', onKeyDown)
+    return () => {
+      document.removeEventListener('pointerdown', onPointerDown)
+      document.removeEventListener('keydown', onKeyDown)
+    }
+  }, [profileOpen])
   const online = Boolean(packet) && !isStale
 
   return (
@@ -349,10 +366,16 @@ export function Topbar({
             )}
           </button>
           {user ? (
-            <div
-              className="flex items-center gap-2 rounded-lg border border-white/10 bg-white/[0.03] px-2.5 py-1.5"
-              title={`${user.name || user.email} (${user.role || 'USER'})`}
-            >
+            <div className="relative" ref={profileRef}>
+              <button
+                type="button"
+                aria-label="Open profile menu"
+                aria-haspopup="menu"
+                aria-expanded={profileOpen}
+                onClick={() => setProfileOpen((open) => !open)}
+                className="flex items-center gap-2 rounded-lg border border-white/10 bg-white/[0.03] px-2.5 py-1.5 text-left transition-all hover:border-volt/30 hover:bg-volt/[0.06] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-volt/60"
+                title="Open profile menu"
+              >
               {user.avatarUrl ? (
                 <img
                   src={user.avatarUrl}
@@ -372,6 +395,24 @@ export function Topbar({
                   {user.role || 'USER'}
                 </span>
               </div>
+              </button>
+              {profileOpen && (
+                <div role="menu" aria-label="Profile and account menu" className="absolute right-0 top-[calc(100%+10px)] z-50 w-72 overflow-hidden rounded-2xl border border-white/10 bg-ink-900/95 shadow-2xl shadow-black/40 backdrop-blur-xl">
+                  <div className="border-b border-white/[0.07] bg-white/[0.03] p-4">
+                    <div className="flex items-center gap-3">
+                      {user.avatarUrl ? <img src={user.avatarUrl} alt="" className="h-11 w-11 rounded-full border border-volt/30 object-cover" /> : <div className="grid h-11 w-11 place-items-center rounded-full bg-volt/15 text-lg font-semibold text-volt">{(user.name || user.email || 'U').charAt(0).toUpperCase()}</div>}
+                      <div className="min-w-0"><p className="truncate text-sm font-semibold text-white">{user.name || 'Name unavailable'}</p><p className="truncate text-xs text-slate-400">{user.email || 'Email unavailable'}</p></div>
+                    </div>
+                    <span className="mt-3 inline-flex rounded-full border border-volt/25 bg-volt/10 px-2 py-1 text-[10px] font-semibold uppercase tracking-wider text-volt">{user.role || 'USER'}</span>
+                  </div>
+                  <div className="space-y-1 p-2 text-xs text-slate-400">
+                    <div className="rounded-lg px-3 py-2.5"><span className="block font-medium text-slate-200">Account</span><span className="text-[11px] text-slate-500">Managed through Google OAuth</span></div>
+                    <div className="rounded-lg px-3 py-2.5"><span className="block font-medium text-slate-200">Security</span><span className="text-[11px] text-slate-500">HTTP-only session protection enabled</span></div>
+                    <div className="rounded-lg px-3 py-2.5"><span className="block font-medium text-slate-200">Preferences</span><span className="text-[11px] text-slate-500">Dashboard preferences are available in Settings</span></div>
+                  </div>
+                  <div className="border-t border-white/[0.07] p-2"><button type="button" role="menuitem" onClick={() => { setProfileOpen(false); onSignOut() }} className="flex w-full items-center gap-2 rounded-lg px-3 py-2.5 text-xs font-medium text-rose-300 transition-colors hover:bg-rose-400/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-rose-400/60"><LogOut className="h-3.5 w-3.5" /> Sign out</button></div>
+                </div>
+              )}
             </div>
           ) : (
             <button
@@ -412,9 +453,17 @@ const SEV: Record<AlertSeverity, { icon: LucideIcon; cls: string }> = {
 const CATEGORIES: (AlertCategory | 'ALL')[] = ['ALL', 'HARDWARE', 'NETWORK', 'ENERGY', 'AI', 'SYSTEM']
 
 export function AlertPanel({ open, onClose }: { open: boolean; onClose: () => void }) {
-  const { alerts, markAllRead } = useStore()
+  const { alerts, markAlertRead, markAllRead } = useStore()
   const [sev, setSev] = useState<AlertSeverity | 'all'>('all')
   const [cat, setCat] = useState<AlertCategory | 'ALL'>('ALL')
+  const [busyId, setBusyId] = useState<string | null>(null)
+  const [error, setError] = useState<string | null>(null)
+  useEffect(() => {
+    if (!open) return
+    const onKeyDown = (event: KeyboardEvent) => event.key === 'Escape' && onClose()
+    document.addEventListener('keydown', onKeyDown)
+    return () => document.removeEventListener('keydown', onKeyDown)
+  }, [open, onClose])
   const list = alerts.filter((a) => (sev === 'all' || a.severity === sev) && (cat === 'ALL' || a.category === cat))
   return (
     <>
@@ -426,12 +475,12 @@ export function AlertPanel({ open, onClose }: { open: boolean; onClose: () => vo
       >
         <div className="flex items-center justify-between border-b border-white/[0.06] px-5 py-4">
           <div>
-            <h3 className="text-sm font-semibold text-white">Alert Center</h3>
-            <p className="text-[11px] text-slate-500">{alerts.length} events in this session</p>
+            <h3 className="text-sm font-semibold text-white">Notifications</h3>
+            <p className="text-[11px] text-slate-500">{alerts.filter((a) => !a.read).length} unread · {alerts.length} total</p>
           </div>
           <div className="flex items-center gap-2">
-            <button className="btn" onClick={markAllRead}>
-              Mark read
+            <button className="btn" disabled={busyId === 'all' || alerts.every((a) => a.read)} onClick={() => { setError(null); setBusyId('all'); void markAllRead().catch(() => setError("Couldn't update notifications. Please try again.")).finally(() => setBusyId(null)) }}>
+              {busyId === 'all' ? 'Updating…' : 'Mark all as read'}
             </button>
             <button onClick={onClose} className="rounded-md p-1.5 text-slate-400 hover:text-white">
               <X className="h-4 w-4" />
@@ -467,12 +516,13 @@ export function AlertPanel({ open, onClose }: { open: boolean; onClose: () => vo
           </div>
         </div>
         <div className="flex-1 space-y-3 overflow-y-auto p-5">
-          {list.length === 0 && <p className="py-10 text-center text-xs text-slate-500">No alerts in this category.</p>}
+          {error && <p role="alert" className="rounded-lg border border-rose-400/25 bg-rose-400/[0.07] p-3 text-xs text-rose-200">{error}</p>}
+          {list.length === 0 && <div className="py-16 text-center"><CheckCircle2 className="mx-auto h-8 w-8 text-emerald-400/70" /><p className="mt-3 text-sm font-medium text-slate-200">You're all caught up</p><p className="mt-1 text-xs text-slate-500">New system events and alerts will appear here.</p></div>}
           {list.map((a) => {
             const s = SEV[a.severity]
             const Icon = s.icon
             return (
-              <article key={a.id} className={`rounded-lg border p-3.5 ${s.cls}`}>
+              <article key={a.id} className={`rounded-lg border p-3.5 transition-colors ${s.cls} ${a.read ? 'opacity-70' : 'ring-1 ring-white/[0.04]'}`}>
                 <div className="flex items-start gap-2.5">
                   <Icon className="mt-0.5 h-4 w-4 shrink-0" strokeWidth={1.9} />
                   <div className="min-w-0 flex-1">
@@ -501,6 +551,7 @@ export function AlertPanel({ open, onClose }: { open: boolean; onClose: () => vo
                       <span className="text-slate-500">Recommended: </span>
                       {a.action}
                     </p>
+                    {!a.read && <button type="button" disabled={busyId === a.id} onClick={() => { setError(null); setBusyId(a.id); void markAlertRead(a.id).catch(() => setError("Couldn't update notification. Please try again.")).finally(() => setBusyId(null)) }} className="mt-3 inline-flex items-center gap-1.5 rounded-md border border-white/10 px-2.5 py-1.5 text-[10px] font-semibold text-slate-300 transition-colors hover:border-volt/30 hover:text-volt disabled:opacity-50"><CheckCircle2 className="h-3 w-3" /> {busyId === a.id ? 'Updating…' : 'Mark as read'}</button>}
                   </div>
                 </div>
               </article>

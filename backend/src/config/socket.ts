@@ -143,6 +143,13 @@ export function emitAlertResolved(alert: any): void {
   }
 }
 
+export function emitAlertUpdated(alert: any): void {
+  if (!io) return
+  if (alert && alert.deviceId) {
+    io.to(`device:${alert.deviceId}`).emit('alert:updated', alert)
+  }
+}
+
 export function emitMlPrediction(deviceId: string, prediction: unknown): void {
   if (!io) return
   io.to(`device:${deviceId}`).emit('ml:prediction', prediction)

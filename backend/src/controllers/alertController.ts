@@ -1,7 +1,9 @@
 import { Request, Response } from 'express'
-import { listAlerts, resolveAlert, createAlert } from '../services/alertService.js'
+import mongoose from 'mongoose'
+import { listAlerts, resolveAlert, createAlert, markAlertRead, markAlertsRead } from '../services/alertService.js'
 import { Device } from '../models/Device.js'
 import { Alert } from '../models/Alert.js'
+import { emitAlertUpdated } from '../config/socket.js'
 
 export async function getAlerts(req: Request, res: Response): Promise<void> {
   const user = req.user
@@ -58,6 +60,8 @@ export async function getAlerts(req: Request, res: Response): Promise<void> {
         threshold: a.threshold,
         action: a.action,
         resolved: a.resolved,
+        read: a.read,
+        readAt: a.readAt?.toISOString() ?? null,
         timestamp: a.createdAt.toISOString(),
       })),
     })
@@ -165,5 +169,57 @@ export async function createManualAlert(req: Request, res: Response): Promise<vo
         message: error instanceof Error ? error.message : 'Failed to create alert.',
       },
     })
+  }
+}
+
+export async function markRead(req: Request, res: Response): Promise<void> {
+  const user = req.user
+  if (!user) {
+    res.status(401).json({ success: false, error: { code: 'UNAUTHORIZED', message: 'Authentication required.' } })
+    return
+  }
+  const alertId = req.params.alertId
+  if (!mongoose.isValidObjectId(alertId)) {
+    res.status(400).json({ success: false, error: { code: 'INVALID_ID', message: 'Invalid notification ID.' } })
+    return
+  }
+  try {
+    const alert = await Alert.findById(alertId)
+    if (!alert) {
+      res.status(404).json({ success: false, error: { code: 'NOT_FOUND', message: 'Notification not found.' } })
+      return
+    }
+    if (user.role !== 'ADMIN') {
+      const device = await Device.findOne({ deviceId: alert.deviceId })
+      if (!device?.ownerId || device.ownerId.toString() !== user.userId) {
+        res.status(403).json({ success: false, error: { code: 'ACCESS_DENIED', message: 'You do not have permission to update this notification.' } })
+        return
+      }
+    }
+    const updated = await markAlertRead(alertId)
+    if (!updated) {
+      res.status(404).json({ success: false, error: { code: 'NOT_FOUND', message: 'Notification not found.' } })
+      return
+    }
+    emitAlertUpdated(updated)
+    res.json({ success: true, data: { id: updated._id.toString(), read: updated.read, readAt: updated.readAt?.toISOString() ?? null } })
+  } catch {
+    res.status(500).json({ success: false, error: { code: 'UPDATE_ERROR', message: 'Unable to update notification.' } })
+  }
+}
+
+export async function markAllRead(req: Request, res: Response): Promise<void> {
+  const user = req.user
+  if (!user) {
+    res.status(401).json({ success: false, error: { code: 'UNAUTHORIZED', message: 'Authentication required.' } })
+    return
+  }
+  try {
+    const deviceIds = user.role === 'ADMIN' ? undefined : await Device.find({ ownerId: user.userId }).distinct('deviceId')
+    const filter: Record<string, unknown> = deviceIds ? { deviceId: { $in: deviceIds } } : {}
+    const updated = await markAlertsRead(filter)
+    res.json({ success: true, data: { updated } })
+  } catch {
+    res.status(500).json({ success: false, error: { code: 'UPDATE_ERROR', message: 'Unable to update notifications.' } })
   }
 }

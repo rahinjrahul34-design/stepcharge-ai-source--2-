@@ -1,7 +1,10 @@
 import dotenv from 'dotenv'
-import path from 'path'
-
 dotenv.config()
+
+const jwtSecret = process.env.JWT_SECRET || (process.env.NODE_ENV === 'production' ? '' : 'stepcharge_dev_secret_super_secure_key_32chars')
+if (process.env.NODE_ENV === 'production' && !jwtSecret) {
+  throw new Error('JWT_SECRET must be configured in production.')
+}
 
 export const config = {
   port: parseInt(process.env.PORT || '5000', 10),
@@ -9,7 +12,7 @@ export const config = {
   isProd: process.env.NODE_ENV === 'production',
   frontendUrl: process.env.FRONTEND_URL || 'http://localhost:5173',
   mongoUri: process.env.MONGODB_URI || 'mongodb://localhost:27017/stepcharge',
-  jwtSecret: process.env.JWT_SECRET || 'stepcharge_dev_secret_super_secure_key_32chars',
+  jwtSecret,
   sessionCookieName: process.env.SESSION_COOKIE_NAME || 'stepcharge_session',
   sessionMaxAgeMs: parseInt(process.env.SESSION_MAX_AGE_MS || '604800000', 10), // 7 days
   google: {

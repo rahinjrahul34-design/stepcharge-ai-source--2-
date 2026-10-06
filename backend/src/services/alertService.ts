@@ -59,3 +59,19 @@ export async function resolveAlert(alertId: string, userId?: string): Promise<IA
   }
   return alert
 }
+
+export async function markAlertRead(alertId: string): Promise<IAlert | null> {
+  return Alert.findByIdAndUpdate(
+    alertId,
+    { $set: { read: true, readAt: new Date() } },
+    { new: true },
+  )
+}
+
+export async function markAlertsRead(filter: Record<string, unknown>): Promise<number> {
+  const result = await Alert.updateMany(
+    { ...filter, read: { $ne: true } },
+    { $set: { read: true, readAt: new Date() } },
+  )
+  return result.modifiedCount
+}
