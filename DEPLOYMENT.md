@@ -167,8 +167,8 @@ If `GOOGLE_CLIENT_ID` or `GOOGLE_CLIENT_SECRET` is missing, the backend intentio
 
 The secure bootstrap path is environment-based initial admin assignment:
 
-1. Set `ADMIN_EMAILS` or `INITIAL_ADMIN_EMAIL` before first login.
-2. Sign in with Google using one of those email addresses.
+1. Set `ADMIN_EMAILS` or `INITIAL_ADMIN_EMAIL` before first Google login. To provision password sign-in, also set `INITIAL_ADMIN_PASSWORD`; the backend creates/promotes that admin account when MongoDB is available and does not overwrite an existing password.
+2. Sign in with Google using one of the configured admin email addresses, or use the configured initial admin email and password.
 3. Register devices through the authenticated admin-only `POST /api/devices` route.
 4. Copy the returned device API key into the ESP32 firmware secret configuration.
 

@@ -3,6 +3,7 @@ import { createApp } from './app.js'
 import { config } from './config/env.js'
 import { connectDatabase, disconnectDatabase } from './config/database.js'
 import { initSocketIO } from './config/socket.js'
+import { ensureInitialAdminAccount } from './services/adminBootstrap.js'
 
 async function bootstrap() {
   const app = createApp()
@@ -13,6 +14,7 @@ async function bootstrap() {
 
   // Connect to Database
   await connectDatabase()
+  await ensureInitialAdminAccount()
 
   // Start HTTP Server
   const server = httpServer.listen(config.port, () => {

@@ -3,11 +3,14 @@ import mongoose, { Schema, Document } from 'mongoose'
 export type UserRole = 'USER' | 'ADMIN'
 
 export interface IUser extends Document {
-  googleId: string
+  googleId?: string
   email: string
   name: string
   avatarUrl?: string
   role: UserRole
+  passwordHash?: string
+  resetPasswordTokenHash?: string
+  resetPasswordExpiresAt?: Date
   lastLoginAt: Date
   createdAt: Date
   updatedAt: Date
@@ -17,8 +20,9 @@ const UserSchema = new Schema<IUser>(
   {
     googleId: {
       type: String,
-      required: true,
+      required: false,
       unique: true,
+      sparse: true,
       index: true,
     },
     email: {
@@ -43,6 +47,18 @@ const UserSchema = new Schema<IUser>(
       enum: ['USER', 'ADMIN'],
       default: 'USER',
       index: true,
+    },
+    passwordHash: {
+      type: String,
+      select: false,
+    },
+    resetPasswordTokenHash: {
+      type: String,
+      select: false,
+    },
+    resetPasswordExpiresAt: {
+      type: Date,
+      select: false,
     },
     lastLoginAt: {
       type: Date,

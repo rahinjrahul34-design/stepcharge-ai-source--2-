@@ -2,6 +2,7 @@ import { Request, Response, NextFunction } from 'express'
 import jwt from 'jsonwebtoken'
 import { config } from '../config/env.js'
 import { User, IUser, UserRole } from '../models/User.js'
+import { isDbConnected } from '../config/database.js'
 
 export interface AuthPayload {
   userId: string
@@ -66,9 +67,37 @@ export async function requireAuth(req: Request, res: Response, next: NextFunctio
     const decoded = jwt.verify(token, config.jwtSecret) as AuthPayload
     req.user = decoded
 
-    // Optional: verify user still exists in DB
+    // In local development if database is offline, allow dev user through seamlessly
+    if (!isDbConnected() && !config.isProd) {
+      req.userDoc = {
+        _id: decoded.userId,
+        googleId: decoded.googleId,
+        email: decoded.email,
+        name: decoded.name,
+        role: decoded.role,
+        avatarUrl: 'https://api.dicebear.com/7.x/bottts/svg?seed=StepCharge',
+        createdAt: new Date(),
+        lastLoginAt: new Date(),
+      } as any
+      return next()
+    }
+
+    // Verify user still exists in DB
     const userDoc = await User.findById(decoded.userId)
     if (!userDoc) {
+      if (!config.isProd) {
+        req.userDoc = {
+          _id: decoded.userId,
+          googleId: decoded.googleId,
+          email: decoded.email,
+          name: decoded.name,
+          role: decoded.role,
+          avatarUrl: 'https://api.dicebear.com/7.x/bottts/svg?seed=StepCharge',
+          createdAt: new Date(),
+          lastLoginAt: new Date(),
+        } as any
+        return next()
+      }
       res.status(401).json({
         success: false,
         error: {

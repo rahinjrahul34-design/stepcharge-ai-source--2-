@@ -14,13 +14,23 @@ import ExperimentMode from './pages/ExperimentMode'
 import Calibration from './pages/Calibration'
 import PresentationMode from './pages/PresentationMode'
 import Login from './pages/Login'
-import { signOut, watchAuth, type AuthUser } from './services/api/authService'
+import { signOut, watchAuth, getCurrentUser, type AuthUser } from './services/api/authService'
 
 export default function App() {
   const [user, setUser] = useState<AuthUser | null>(null)
   const [authed, setAuthed] = useState(false)
   const [restoring, setRestoring] = useState(true)
   const [page, setPage] = useState<PageKey>('overview')
+
+  const handleSignIn = async () => {
+    try {
+      const u = await getCurrentUser()
+      if (u) setUser(u)
+    } catch {
+      // fallback
+    }
+    setAuthed(true)
+  }
 
   // Restore authenticated session from HTTP-only cookie on reload
   useEffect(() => {
@@ -67,7 +77,7 @@ export default function App() {
       </div>
     )
 
-  if (!authed) return <Login onSignIn={() => setAuthed(true)} />
+  if (!authed) return <Login onSignIn={handleSignIn} />
 
   if (page === 'presentation') {
     return (

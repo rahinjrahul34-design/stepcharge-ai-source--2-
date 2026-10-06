@@ -19,8 +19,11 @@ This document provides a comprehensive reference of all environment variables us
 | `GOOGLE_CLIENT_SECRET` | String | Yes | — | Google Cloud OAuth 2.0 Web Client Secret (Confidential). |
 | `GOOGLE_CALLBACK_URL` | String | Yes | `http://localhost:5000/api/auth/google/callback` | Authorized redirect URI configured in Google Cloud Console. |
 | `ML_SERVICE_URL` | String | No | `http://localhost:8000` | Address of the Python FastAPI inference microservice. |
-| `INITIAL_ADMIN_EMAIL` | String | No | — | Email automatically granted `ADMIN` role upon first Google login. |
+| `INITIAL_ADMIN_EMAIL` | String | No | `admin@stepcharge.local` in development | Initial administrator email; also granted `ADMIN` on Google login. |
+| `INITIAL_ADMIN_PASSWORD` | String | No | `StepChargeAdmin123!` in development | Optional password used to provision the initial admin account when MongoDB connects. Never use the development default in production. |
 | `DEFAULT_DEVICE_ID` | String | No | `ESP32-01` | Default hardware identifier seeded or queried. |
+
+In development, the backend provisions `admin@stepcharge.local` with password `StepChargeAdmin123!` when MongoDB is available. These development-only defaults are not enabled in production. Configure `INITIAL_ADMIN_EMAIL` and `INITIAL_ADMIN_PASSWORD` explicitly for a production administrator; an existing password is not overwritten during startup.
 
 ---
 

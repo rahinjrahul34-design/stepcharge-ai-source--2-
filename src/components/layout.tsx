@@ -30,6 +30,9 @@ import {
   Microscope,
   Layers,
   Tv,
+  Check,
+  CheckCheck,
+  ShieldCheck,
 } from 'lucide-react'
 import { useStore } from '../data/store'
 import { StatusBadge, fmtDateTime } from './ui'
@@ -365,63 +368,125 @@ export function Topbar({
               </span>
             )}
           </button>
-          {user ? (
-            <div className="relative" ref={profileRef}>
-              <button
-                type="button"
-                aria-label="Open profile menu"
-                aria-haspopup="menu"
-                aria-expanded={profileOpen}
-                onClick={() => setProfileOpen((open) => !open)}
-                className="flex items-center gap-2 rounded-lg border border-white/10 bg-white/[0.03] px-2.5 py-1.5 text-left transition-all hover:border-volt/30 hover:bg-volt/[0.06] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-volt/60"
-                title="Open profile menu"
-              >
-              {user.avatarUrl ? (
+          {/* User Profile Button & Floating Menu */}
+          <div className="relative" ref={profileRef}>
+            <button
+              type="button"
+              aria-label="Open profile menu"
+              aria-haspopup="menu"
+              aria-expanded={profileOpen}
+              onClick={() => setProfileOpen((open) => !open)}
+              className={`flex items-center gap-2 rounded-lg border px-2.5 py-1.5 text-left transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-volt/70 ${
+                profileOpen
+                  ? 'border-volt/60 bg-volt/10 ring-2 ring-volt/40 shadow-[0_0_15px_rgba(34,211,238,0.2)]'
+                  : 'border-white/10 bg-white/[0.03] hover:border-volt/40 hover:bg-volt/[0.08] hover:shadow-[0_0_15px_rgba(34,211,238,0.18)]'
+              }`}
+              title="User profile and account settings"
+            >
+              {user?.avatarUrl ? (
                 <img
                   src={user.avatarUrl}
                   alt={user.name || 'User avatar'}
-                  className="h-6 w-6 rounded-full object-cover border border-white/20"
+                  className="h-6 w-6 rounded-full object-cover border border-volt/30"
                 />
               ) : (
-                <div className="grid h-6 w-6 place-items-center rounded-full bg-volt/20 text-[10px] font-bold text-volt">
-                  {(user.name || user.email || 'U').charAt(0).toUpperCase()}
+                <div className="grid h-6 w-6 place-items-center rounded-full bg-volt/20 text-[10px] font-bold text-volt ring-1 ring-volt/30">
+                  {((user?.name || user?.email || (mode === 'demo' ? 'Demo' : 'User')).charAt(0)).toUpperCase()}
                 </div>
               )}
               <div className="hidden text-left sm:block">
-                <span className="block max-w-[100px] truncate text-[11px] font-medium leading-none text-slate-200">
-                  {user.name || user.email?.split('@')[0]}
+                <span className="block max-w-[110px] truncate text-[11px] font-medium leading-none text-slate-200">
+                  {user?.name || user?.email?.split('@')[0] || (mode === 'demo' ? 'Demo User' : 'Active Session')}
                 </span>
-                <span className="text-[9px] uppercase tracking-wider text-slate-500">
-                  {user.role || 'USER'}
+                <span className="text-[9px] uppercase tracking-wider text-volt/80 font-semibold">
+                  {user?.role || (mode === 'demo' ? 'DEMO' : 'USER')}
                 </span>
               </div>
-              </button>
-              {profileOpen && (
-                <div role="menu" aria-label="Profile and account menu" className="absolute right-0 top-[calc(100%+10px)] z-50 w-72 overflow-hidden rounded-2xl border border-white/10 bg-ink-900/95 shadow-2xl shadow-black/40 backdrop-blur-xl">
-                  <div className="border-b border-white/[0.07] bg-white/[0.03] p-4">
-                    <div className="flex items-center gap-3">
-                      {user.avatarUrl ? <img src={user.avatarUrl} alt="" className="h-11 w-11 rounded-full border border-volt/30 object-cover" /> : <div className="grid h-11 w-11 place-items-center rounded-full bg-volt/15 text-lg font-semibold text-volt">{(user.name || user.email || 'U').charAt(0).toUpperCase()}</div>}
-                      <div className="min-w-0"><p className="truncate text-sm font-semibold text-white">{user.name || 'Name unavailable'}</p><p className="truncate text-xs text-slate-400">{user.email || 'Email unavailable'}</p></div>
-                    </div>
-                    <span className="mt-3 inline-flex rounded-full border border-volt/25 bg-volt/10 px-2 py-1 text-[10px] font-semibold uppercase tracking-wider text-volt">{user.role || 'USER'}</span>
-                  </div>
-                  <div className="space-y-1 p-2 text-xs text-slate-400">
-                    <div className="rounded-lg px-3 py-2.5"><span className="block font-medium text-slate-200">Account</span><span className="text-[11px] text-slate-500">Managed through Google OAuth</span></div>
-                    <div className="rounded-lg px-3 py-2.5"><span className="block font-medium text-slate-200">Security</span><span className="text-[11px] text-slate-500">HTTP-only session protection enabled</span></div>
-                    <div className="rounded-lg px-3 py-2.5"><span className="block font-medium text-slate-200">Preferences</span><span className="text-[11px] text-slate-500">Dashboard preferences are available in Settings</span></div>
-                  </div>
-                  <div className="border-t border-white/[0.07] p-2"><button type="button" role="menuitem" onClick={() => { setProfileOpen(false); onSignOut() }} className="flex w-full items-center gap-2 rounded-lg px-3 py-2.5 text-xs font-medium text-rose-300 transition-colors hover:bg-rose-400/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-rose-400/60"><LogOut className="h-3.5 w-3.5" /> Sign out</button></div>
-                </div>
-              )}
-            </div>
-          ) : (
-            <button
-              title="User profile"
-              className="grid h-9 w-9 place-items-center rounded-lg border border-white/10 bg-white/[0.03] text-slate-300 hover:text-white"
-            >
-              <UserRound className="h-4 w-4" />
             </button>
-          )}
+
+            {/* Profile Floating Panel */}
+            {profileOpen && (
+              <div
+                role="menu"
+                aria-label="Profile and account menu"
+                className="absolute right-0 top-[calc(100%+10px)] z-50 w-72 sm:w-80 max-w-[calc(100vw-24px)] overflow-hidden rounded-2xl border border-white/10 bg-ink-900/95 shadow-2xl shadow-black/60 backdrop-blur-xl transition-all duration-200 animate-in fade-in zoom-in-95"
+              >
+                {/* Header / Profile Info */}
+                <div className="border-b border-white/[0.08] bg-white/[0.03] p-4">
+                  <div className="flex items-center justify-between pb-2 mb-3 border-b border-white/5">
+                    <span className="text-[10px] font-semibold uppercase tracking-wider text-slate-400">Profile</span>
+                    <span className="inline-flex items-center gap-1 rounded-full border border-volt/30 bg-volt/10 px-2 py-0.5 text-[9px] font-bold uppercase tracking-wider text-volt">
+                      {user?.role || (mode === 'demo' ? 'DEMO USER' : 'USER')}
+                    </span>
+                  </div>
+                  <div className="flex items-center gap-3">
+                    {user?.avatarUrl ? (
+                      <img
+                        src={user.avatarUrl}
+                        alt=""
+                        className="h-11 w-11 rounded-full border border-volt/30 object-cover shadow-sm"
+                      />
+                    ) : (
+                      <div className="grid h-11 w-11 place-items-center rounded-full bg-volt/20 text-base font-bold text-volt ring-1 ring-volt/30 shadow-inner">
+                        {((user?.name || user?.email || (mode === 'demo' ? 'Demo' : 'User')).charAt(0)).toUpperCase()}
+                      </div>
+                    )}
+                    <div className="min-w-0 flex-1">
+                      <p className="truncate text-sm font-semibold text-white">
+                        {user?.name || (mode === 'demo' ? 'Demo Researcher' : 'StepCharge User')}
+                      </p>
+                      <p className="truncate text-xs text-slate-400">
+                        {user?.email || (mode === 'demo' ? 'demo@stepcharge.local' : 'Session authenticated')}
+                      </p>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Account / Security / Preferences links */}
+                <div className="space-y-1 p-2 text-xs text-slate-400">
+                  <div className="flex items-start gap-2.5 rounded-lg px-3 py-2 transition-colors hover:bg-white/[0.04]">
+                    <UserRound className="mt-0.5 h-3.5 w-3.5 text-slate-400 shrink-0" />
+                    <div>
+                      <span className="block font-medium text-slate-200">Account</span>
+                      <span className="text-[11px] text-slate-500">
+                        {user?.uid ? `ID: ${user.uid.slice(0, 14)}…` : 'StepCharge Energy Platform'}
+                      </span>
+                    </div>
+                  </div>
+                  <div className="flex items-start gap-2.5 rounded-lg px-3 py-2 transition-colors hover:bg-white/[0.04]">
+                    <ShieldCheck className="mt-0.5 h-3.5 w-3.5 text-emerald-400 shrink-0" />
+                    <div>
+                      <span className="block font-medium text-slate-200">Security</span>
+                      <span className="text-[11px] text-slate-500">HTTP-only session &amp; RBAC active</span>
+                    </div>
+                  </div>
+                  <div className="flex items-start gap-2.5 rounded-lg px-3 py-2 transition-colors hover:bg-white/[0.04]">
+                    <Sliders className="mt-0.5 h-3.5 w-3.5 text-cyan-400 shrink-0" />
+                    <div>
+                      <span className="block font-medium text-slate-200">Preferences</span>
+                      <span className="text-[11px] text-slate-500">Customizable in Settings panel</span>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Sign Out Action */}
+                <div className="border-t border-white/[0.08] p-2 bg-white/[0.01]">
+                  <button
+                    type="button"
+                    role="menuitem"
+                    onClick={() => {
+                      setProfileOpen(false)
+                      onSignOut()
+                    }}
+                    className="flex w-full items-center gap-2 rounded-xl px-3 py-2 text-xs font-semibold text-rose-300 transition-colors hover:bg-rose-500/10 hover:text-rose-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-rose-400/60"
+                  >
+                    <LogOut className="h-3.5 w-3.5" />
+                    <span>Sign Out</span>
+                  </button>
+                </div>
+              </div>
+            )}
+          </div>
         </div>
       </div>
 
@@ -452,49 +517,97 @@ const SEV: Record<AlertSeverity, { icon: LucideIcon; cls: string }> = {
 }
 const CATEGORIES: (AlertCategory | 'ALL')[] = ['ALL', 'HARDWARE', 'NETWORK', 'ENERGY', 'AI', 'SYSTEM']
 
+function fmtRelativeTime(isoString: string): string {
+  try {
+    const diff = Math.max(0, Date.now() - new Date(isoString).getTime())
+    const sec = Math.floor(diff / 1000)
+    if (sec < 45) return 'Just now'
+    const min = Math.floor(sec / 60)
+    if (min < 60) return `${min}m ago`
+    const hr = Math.floor(min / 60)
+    if (hr < 24) return `${hr}h ago`
+    const days = Math.floor(hr / 24)
+    if (days < 7) return `${days}d ago`
+    return new Date(isoString).toLocaleDateString([], { month: 'short', day: 'numeric' })
+  } catch {
+    return 'Recently'
+  }
+}
+
 export function AlertPanel({ open, onClose }: { open: boolean; onClose: () => void }) {
   const { alerts, markAlertRead, markAllRead } = useStore()
   const [sev, setSev] = useState<AlertSeverity | 'all'>('all')
   const [cat, setCat] = useState<AlertCategory | 'ALL'>('ALL')
   const [busyId, setBusyId] = useState<string | null>(null)
   const [error, setError] = useState<string | null>(null)
+
   useEffect(() => {
     if (!open) return
     const onKeyDown = (event: KeyboardEvent) => event.key === 'Escape' && onClose()
     document.addEventListener('keydown', onKeyDown)
     return () => document.removeEventListener('keydown', onKeyDown)
   }, [open, onClose])
+
   const list = alerts.filter((a) => (sev === 'all' || a.severity === sev) && (cat === 'ALL' || a.category === cat))
+  const unreadCount = alerts.filter((a) => !a.read).length
+
   return (
     <>
-      {open && <div className="fixed inset-0 z-40 bg-black/50" onClick={onClose} />}
+      {open && <div className="fixed inset-0 z-40 bg-black/60 backdrop-blur-xs transition-opacity" onClick={onClose} />}
       <aside
-        className={`fixed inset-y-0 right-0 z-50 flex w-full max-w-md flex-col border-l border-white/[0.07] bg-ink-900/95 backdrop-blur-xl transition-transform ${
+        role="dialog"
+        aria-modal="true"
+        aria-label="Notifications Center"
+        className={`fixed inset-y-0 right-0 z-50 flex w-full max-w-md flex-col border-l border-white/[0.08] bg-ink-900/95 backdrop-blur-xl shadow-2xl transition-transform duration-200 ease-out ${
           open ? 'translate-x-0' : 'translate-x-full'
         }`}
       >
-        <div className="flex items-center justify-between border-b border-white/[0.06] px-5 py-4">
+        {/* Header */}
+        <div className="flex items-center justify-between border-b border-white/[0.08] px-5 py-4 bg-white/[0.02]">
           <div>
-            <h3 className="text-sm font-semibold text-white">Notifications</h3>
-            <p className="text-[11px] text-slate-500">{alerts.filter((a) => !a.read).length} unread · {alerts.length} total</p>
+            <h3 className="text-sm font-bold text-white">Notifications</h3>
+            <p className="text-[11px] text-slate-400">
+              <span className={unreadCount > 0 ? 'text-volt font-semibold' : 'text-slate-500'}>
+                {unreadCount} unread
+              </span>{' '}
+              · {alerts.length} total
+            </p>
           </div>
           <div className="flex items-center gap-2">
-            <button className="btn" disabled={busyId === 'all' || alerts.every((a) => a.read)} onClick={() => { setError(null); setBusyId('all'); void markAllRead().catch(() => setError("Couldn't update notifications. Please try again.")).finally(() => setBusyId(null)) }}>
-              {busyId === 'all' ? 'Updating…' : 'Mark all as read'}
+            <button
+              type="button"
+              className="btn btn-ghost text-xs px-2.5 py-1.5 text-volt hover:bg-volt/10 hover:text-cyan-300 disabled:opacity-40"
+              disabled={busyId === 'all' || unreadCount === 0}
+              onClick={() => {
+                setError(null)
+                setBusyId('all')
+                void markAllRead()
+                  .catch(() => setError("Couldn't update notifications. Please try again."))
+                  .finally(() => setBusyId(null))
+              }}
+            >
+              <CheckCheck className="h-3.5 w-3.5" />
+              <span>{busyId === 'all' ? 'Updating…' : 'Mark all as read'}</span>
             </button>
-            <button onClick={onClose} className="rounded-md p-1.5 text-slate-400 hover:text-white">
+            <button
+              onClick={onClose}
+              aria-label="Close notifications"
+              className="rounded-lg p-1.5 text-slate-400 hover:bg-white/5 hover:text-white transition-colors"
+            >
               <X className="h-4 w-4" />
             </button>
           </div>
         </div>
-        <div className="space-y-2 border-b border-white/[0.06] px-5 py-3">
+
+        {/* Filter Controls */}
+        <div className="space-y-2 border-b border-white/[0.06] px-5 py-3 bg-white/[0.01]">
           <div className="flex flex-wrap gap-1.5">
             {(['all', 'critical', 'warning', 'info', 'success'] as const).map((f) => (
               <button
                 key={f}
                 onClick={() => setSev(f)}
                 className={`rounded-md px-2.5 py-1 text-[11px] font-medium capitalize transition-colors ${
-                  sev === f ? 'bg-white/10 text-white' : 'text-slate-500 hover:text-slate-300'
+                  sev === f ? 'bg-volt/20 text-volt border border-volt/30' : 'text-slate-400 hover:text-slate-200 hover:bg-white/5'
                 }`}
               >
                 {f}
@@ -506,8 +619,8 @@ export function AlertPanel({ open, onClose }: { open: boolean; onClose: () => vo
               <button
                 key={c}
                 onClick={() => setCat(c)}
-                className={`rounded-md border px-2 py-0.5 text-[10px] font-medium tracking-wide transition-colors ${
-                  cat === c ? 'border-volt/30 bg-volt/10 text-volt' : 'border-white/10 text-slate-500 hover:text-slate-300'
+                className={`rounded-md border px-2 py-0.5 text-[10px] font-semibold tracking-wide transition-colors ${
+                  cat === c ? 'border-volt/40 bg-volt/10 text-volt' : 'border-white/10 text-slate-500 hover:text-slate-300 hover:bg-white/5'
                 }`}
               >
                 {c}
@@ -515,43 +628,115 @@ export function AlertPanel({ open, onClose }: { open: boolean; onClose: () => vo
             ))}
           </div>
         </div>
+
+        {/* Notifications List */}
         <div className="flex-1 space-y-3 overflow-y-auto p-5">
-          {error && <p role="alert" className="rounded-lg border border-rose-400/25 bg-rose-400/[0.07] p-3 text-xs text-rose-200">{error}</p>}
-          {list.length === 0 && <div className="py-16 text-center"><CheckCircle2 className="mx-auto h-8 w-8 text-emerald-400/70" /><p className="mt-3 text-sm font-medium text-slate-200">You're all caught up</p><p className="mt-1 text-xs text-slate-500">New system events and alerts will appear here.</p></div>}
+          {error && (
+            <div role="alert" className="rounded-xl border border-rose-500/30 bg-rose-500/[0.08] p-3 text-xs text-rose-200">
+              <p>{error}</p>
+            </div>
+          )}
+
+          {/* Premium Empty State */}
+          {list.length === 0 && (
+            <div className="py-20 text-center">
+              <div className="mx-auto grid h-12 w-12 place-items-center rounded-2xl border border-emerald-500/20 bg-emerald-500/10 text-emerald-400">
+                <CheckCircle2 className="h-6 w-6" strokeWidth={1.8} />
+              </div>
+              <p className="mt-4 text-sm font-semibold text-slate-100">You're all caught up</p>
+              <p className="mt-1 text-xs text-slate-500 max-w-xs mx-auto leading-relaxed">
+                New system events, threshold triggers, and energy alerts will appear here.
+              </p>
+            </div>
+          )}
+
+          {/* Notification Cards */}
           {list.map((a) => {
             const s = SEV[a.severity]
             const Icon = s.icon
+            const isUnread = !a.read
+
             return (
-              <article key={a.id} className={`rounded-lg border p-3.5 transition-colors ${s.cls} ${a.read ? 'opacity-70' : 'ring-1 ring-white/[0.04]'}`}>
-                <div className="flex items-start gap-2.5">
-                  <Icon className="mt-0.5 h-4 w-4 shrink-0" strokeWidth={1.9} />
+              <article
+                key={a.id}
+                className={`group rounded-xl border p-4 transition-all duration-200 ${
+                  isUnread
+                    ? 'border-volt/30 bg-volt/[0.03] shadow-[0_0_12px_rgba(34,211,238,0.06)]'
+                    : 'border-white/[0.06] bg-white/[0.015] opacity-75 hover:opacity-100'
+                }`}
+              >
+                <div className="flex items-start gap-3">
+                  <div className={`mt-0.5 rounded-lg border p-1.5 ${s.cls}`}>
+                    <Icon className="h-3.5 w-3.5 shrink-0" strokeWidth={2} />
+                  </div>
+
                   <div className="min-w-0 flex-1">
                     <div className="flex items-baseline justify-between gap-2">
-                      <h4 className="text-sm font-medium text-slate-100">{a.title}</h4>
-                      <time className="shrink-0 font-mono text-[10px] text-slate-500">{fmtDateTime(a.timestamp)}</time>
+                      <div className="flex items-center gap-1.5">
+                        {isUnread && <span className="h-1.5 w-1.5 rounded-full bg-volt ring-2 ring-volt/20 shrink-0" />}
+                        <h4 className="text-xs font-semibold text-slate-100 leading-snug">{a.title}</h4>
+                      </div>
+                      <time
+                        title={fmtDateTime(a.timestamp)}
+                        className="shrink-0 font-mono text-[10px] text-slate-400"
+                      >
+                        {fmtRelativeTime(a.timestamp)}
+                      </time>
                     </div>
-                    <div className="mt-1 flex items-center gap-2">
+
+                    <div className="mt-1.5 flex items-center gap-2">
                       <span className="rounded border border-white/10 px-1.5 py-0.5 text-[9px] font-semibold tracking-wider text-slate-400">
                         {a.category}
                       </span>
-                      <span className="text-[10px] uppercase tracking-wider text-slate-500">{a.severity}</span>
+                      <span className="text-[10px] uppercase font-mono tracking-wider text-slate-500">{a.severity}</span>
                     </div>
-                    <p className="mt-1.5 text-xs leading-relaxed text-slate-400">{a.reason}</p>
-                    <dl className="mt-2.5 grid grid-cols-2 gap-x-3 gap-y-1 text-[11px]">
-                      <div className="flex justify-between gap-2">
-                        <dt className="text-slate-500">Current</dt>
-                        <dd className="font-mono text-slate-300">{a.currentValue}</dd>
+
+                    <p className="mt-2 text-xs leading-relaxed text-slate-300/90">{a.reason}</p>
+
+                    {(a.currentValue || a.threshold) && (
+                      <dl className="mt-2.5 grid grid-cols-2 gap-x-3 gap-y-1 rounded-lg border border-white/[0.04] bg-white/[0.02] p-2 text-[11px]">
+                        {a.currentValue && (
+                          <div className="flex justify-between gap-2">
+                            <dt className="text-slate-500">Current</dt>
+                            <dd className="font-mono text-slate-300 font-medium">{a.currentValue}</dd>
+                          </div>
+                        )}
+                        {a.threshold && (
+                          <div className="flex justify-between gap-2">
+                            <dt className="text-slate-500">Threshold</dt>
+                            <dd className="font-mono text-slate-300 font-medium">{a.threshold}</dd>
+                          </div>
+                        )}
+                      </dl>
+                    )}
+
+                    {a.action && (
+                      <p className="mt-2.5 text-[11px] text-slate-400 leading-relaxed border-t border-white/5 pt-2">
+                        <span className="text-slate-500 font-medium">Recommended: </span>
+                        {a.action}
+                      </p>
+                    )}
+
+                    {/* Mark as read button */}
+                    {isUnread && (
+                      <div className="mt-3 pt-2 border-t border-white/5 flex items-center justify-end">
+                        <button
+                          type="button"
+                          disabled={busyId === a.id}
+                          onClick={() => {
+                            setError(null)
+                            setBusyId(a.id)
+                            void markAlertRead(a.id)
+                              .catch(() => setError("Couldn't update notification. Please try again."))
+                              .finally(() => setBusyId(null))
+                          }}
+                          className="group/btn inline-flex items-center gap-1.5 rounded-lg border border-white/10 bg-white/[0.03] px-2.5 py-1.5 text-[11px] font-semibold text-slate-300 transition-all hover:border-volt/40 hover:bg-volt/10 hover:text-volt disabled:opacity-50"
+                        >
+                          <Check className="h-3 w-3 transition-transform group-hover/btn:scale-110" />
+                          <span>{busyId === a.id ? 'Updating…' : 'Mark as read'}</span>
+                        </button>
                       </div>
-                      <div className="flex justify-between gap-2">
-                        <dt className="text-slate-500">Threshold</dt>
-                        <dd className="font-mono text-slate-300">{a.threshold}</dd>
-                      </div>
-                    </dl>
-                    <p className="mt-2 border-t border-white/5 pt-2 text-[11px] text-slate-400">
-                      <span className="text-slate-500">Recommended: </span>
-                      {a.action}
-                    </p>
-                    {!a.read && <button type="button" disabled={busyId === a.id} onClick={() => { setError(null); setBusyId(a.id); void markAlertRead(a.id).catch(() => setError("Couldn't update notification. Please try again.")).finally(() => setBusyId(null)) }} className="mt-3 inline-flex items-center gap-1.5 rounded-md border border-white/10 px-2.5 py-1.5 text-[10px] font-semibold text-slate-300 transition-colors hover:border-volt/30 hover:text-volt disabled:opacity-50"><CheckCircle2 className="h-3 w-3" /> {busyId === a.id ? 'Updating…' : 'Mark as read'}</button>}
+                    )}
                   </div>
                 </div>
               </article>

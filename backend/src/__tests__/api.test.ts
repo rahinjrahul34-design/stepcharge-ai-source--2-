@@ -70,6 +70,75 @@ describe('StepCharge AI API Integration Tests', () => {
     expect(res.body.error.code).toBe('DATABASE_UNAVAILABLE')
   })
 
+  it('POST /api/auth/register validates required fields and password length', async () => {
+    const resShort = await request(app).post('/api/auth/register').send({
+      email: 'newuser@stepcharge.test',
+      password: '123',
+    })
+    expect(resShort.status).toBe(400)
+    expect(resShort.body.error.code).toBe('INVALID_PASSWORD')
+
+    const resInvalidEmail = await request(app).post('/api/auth/register').send({
+      email: 'not-an-email',
+      password: 'validPassword123',
+    })
+    expect(resInvalidEmail.status).toBe(400)
+    expect(resInvalidEmail.error).toBeDefined()
+  })
+
+  it('POST /api/auth/login validates credentials and handles offline database gracefully', async () => {
+    const resMissing = await request(app).post('/api/auth/login').send({})
+    expect(resMissing.status).toBe(400)
+    expect(resMissing.body.error.code).toBe('INVALID_CREDENTIALS')
+
+    const res = await request(app).post('/api/auth/login').send({
+      email: 'nonexistent@stepcharge.test',
+      password: 'wrongPassword123',
+    })
+    expect([401, 503]).toContain(res.status)
+  })
+
+  it('POST /api/auth/forgot-password returns secure generic response on invalid input or offline db', async () => {
+    const resInvalid = await request(app).post('/api/auth/forgot-password').send({
+      email: 'invalid-email',
+    })
+    expect(resInvalid.status).toBe(200)
+    expect(resInvalid.body.success).toBe(true)
+    expect(resInvalid.body.data.message).toContain('If an account exists for this email')
+
+    const res = await request(app).post('/api/auth/forgot-password').send({
+      email: 'test@stepcharge.test',
+    })
+    expect([200, 503]).toContain(res.status)
+  })
+
+  it('POST /api/auth/reset-password rejects invalid inputs with 400 or reports 503 when offline', async () => {
+    const resShort = await request(app).post('/api/auth/reset-password').send({
+      token: 'fake-token-that-does-not-exist',
+      newPassword: 'short',
+    })
+    expect(resShort.status).toBe(400)
+    expect(resShort.body.error.code).toBe('INVALID_RESET_REQUEST')
+
+    const res = await request(app).post('/api/auth/reset-password').send({
+      token: 'fake-token-that-does-not-exist',
+      newPassword: 'newValidPassword123',
+    })
+    expect([400, 503]).toContain(res.status)
+  })
+
+  it('PATCH /api/alerts/:alertId/read requires authentication (401)', async () => {
+    const res = await request(app).patch('/api/alerts/507f1f77bcf86cd799439011/read')
+    expect(res.status).toBe(401)
+    expect(res.body.error.code).toBe('UNAUTHORIZED')
+  })
+
+  it('POST /api/alerts/read-all requires authentication (401)', async () => {
+    const res = await request(app).post('/api/alerts/read-all')
+    expect(res.status).toBe(401)
+    expect(res.body.error.code).toBe('UNAUTHORIZED')
+  })
+
   it('Returns 404 with standardized error for unknown routes', async () => {
     const res = await request(app).get('/api/non-existent-endpoint')
     expect(res.status).toBe(404)
