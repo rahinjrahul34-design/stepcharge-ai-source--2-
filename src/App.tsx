@@ -47,7 +47,15 @@ export default function App() {
 
     const checkMode = localStorage.getItem('stepcharge.mode')
 
+    // Safety timeout: Ensure loading spinner never hangs indefinitely
+    const safetyTimer = setTimeout(() => {
+      if (alive) {
+        setRestoring(false)
+      }
+    }, 2000)
+
     watchAuth((u) => {
+      clearTimeout(safetyTimer)
       if (!alive) return
       if (u) {
         setUser(u)
@@ -62,10 +70,12 @@ export default function App() {
       .then((cleanup) => {
         return () => {
           alive = false
+          clearTimeout(safetyTimer)
           cleanup()
         }
       })
       .catch(() => {
+        clearTimeout(safetyTimer)
         if (alive) {
           if (checkMode === 'demo') setAuthed(true)
           setRestoring(false)
@@ -74,6 +84,7 @@ export default function App() {
 
     return () => {
       alive = false
+      clearTimeout(safetyTimer)
     }
   }, [])
 

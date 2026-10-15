@@ -79,7 +79,11 @@ export default function Login({ onSignIn }: { onSignIn: () => void }) {
     setGoogleBusy(true)
     try {
       const url = await getGoogleLoginUrl()
-      if (url && (url.includes('dev_google_login=1') || url.startsWith('/') || url.includes(window.location.host))) {
+      if (
+        url &&
+        (url.includes('dev_google_login=1') ||
+          (!url.includes('accounts.google.com') && (url.startsWith('/') || url.includes(window.location.host))))
+      ) {
         await devLogin()
         localStorage.setItem('stepcharge.mode', 'live')
         onSignIn()

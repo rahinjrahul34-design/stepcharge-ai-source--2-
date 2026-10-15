@@ -3,13 +3,17 @@
  * Configures the backend base URL and unified fetch helper with HTTP-only cookie support.
  */
 
+const isViteDev =
+  typeof window !== 'undefined' &&
+  (window.location.port === '5173' || window.location.port === '5174' || window.location.port === '3000')
+
 export const API_BASE_URL =
-  (typeof window !== 'undefined' && window.location.origin && !window.location.origin.includes(':5173'))
+  (typeof window !== 'undefined' && !isViteDev && window.location.origin)
     ? `${window.location.origin}/api`
     : (import.meta.env.VITE_API_URL as string | undefined)?.replace(/\/$/, '') || 'http://localhost:5000/api'
 
 export const SOCKET_BASE_URL =
-  (typeof window !== 'undefined' && window.location.origin && !window.location.origin.includes(':5173'))
+  (typeof window !== 'undefined' && !isViteDev && window.location.origin)
     ? window.location.origin
     : (import.meta.env.VITE_SOCKET_URL as string | undefined)?.replace(/\/$/, '') ||
       (import.meta.env.VITE_API_URL as string | undefined)?.replace(/\/api\/?$/, '') ||
