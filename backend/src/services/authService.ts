@@ -21,7 +21,19 @@ export interface GoogleProfile {
 }
 
 export function isGoogleOAuthConfigured(): boolean {
-  return Boolean(config.google.clientId && config.google.clientSecret)
+  return Boolean(
+    config.google.clientId
+      && config.google.clientSecret
+      && !config.google.clientId.startsWith('your-')
+      && !config.google.clientSecret.startsWith('your-'),
+  )
+}
+
+if (
+  (config.google.clientId && config.google.clientId.startsWith('your-'))
+  || (config.google.clientSecret && config.google.clientSecret.startsWith('your-'))
+) {
+  console.warn('[Google OAuth] Credentials are still template values. Replace them in backend/.env.')
 }
 
 export function requireGoogleOAuthConfigured(): void {

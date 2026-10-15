@@ -12,7 +12,9 @@ import {
 } from '../services/authService.js'
 import { config } from '../config/env.js'
 import { AuditLog } from '../models/AuditLog.js'
+import { User } from '../models/User.js'
 import { isDbConnected } from '../config/database.js'
+import crypto from 'crypto'
 
 export async function getAuthUrl(req: Request, res: Response): Promise<void> {
   if (!isGoogleOAuthConfigured()) {
@@ -22,6 +24,14 @@ export async function getAuthUrl(req: Request, res: Response): Promise<void> {
         code: 'GOOGLE_OAUTH_NOT_CONFIGURED',
         message: 'Google OAuth is not configured.',
       },
+    })
+    return
+  }
+
+  if (!isDbConnected()) {
+    res.status(503).json({
+      success: false,
+      error: { code: 'DATABASE_UNAVAILABLE', message: 'MongoDB is not connected. Check MONGODB_URI and Atlas network access.' },
     })
     return
   }
@@ -176,9 +186,6 @@ export async function logout(req: Request, res: Response): Promise<void> {
   })
 }
 
-import crypto from 'crypto'
-import { User } from '../models/User.js'
-
 function hashPassword(password: string): string {
   const salt = crypto.randomBytes(16).toString('hex')
   const hash = crypto.scryptSync(password, salt, 64).toString('hex')
@@ -325,11 +332,31 @@ export async function requestPasswordReset(req: Request, res: Response): Promise
       user.resetPasswordTokenHash = hashToken(rawToken)
       user.resetPasswordExpiresAt = new Date(Date.now() + 60 * 60 * 1000) // 1 hour
       await user.save()
+      const resetUrl = new URL('/', config.frontendUrl)
+      resetUrl.searchParams.set('reset_token', rawToken)
+
+      if (config.passwordReset.resendApiKey && config.passwordReset.emailFrom) {
+        const response = await fetch('https://api.resend.com/emails', {
+          method: 'POST',
+          headers: { Authorization: `Bearer ${config.passwordReset.resendApiKey}`, 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            from: config.passwordReset.emailFrom,
+            to: [user.email],
+            subject: 'Reset your StepCharge password',
+            text: `Use this link to reset your password (it expires in one hour): ${resetUrl.toString()}`,
+          }),
+        })
+        if (!response.ok) throw new Error(`Password reset email provider returned ${response.status}.`)
+      } else if (config.isProd) {
+        throw new Error('Password reset email delivery is not configured.')
+      } else {
+        console.info(`[Auth] Development password reset link for ${user.email}: ${resetUrl.toString()}`)
+      }
     }
     // Return standard security response (never leak existence)
     res.json(genericResponse)
   } catch (error) {
-    console.error('[Auth] Forgot password error:', error)
+    console.error('[Auth] Password reset request failed:', error instanceof Error ? error.message : error)
     res.json(genericResponse)
   }
 }

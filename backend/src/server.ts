@@ -6,6 +6,10 @@ import { initSocketIO } from './config/socket.js'
 import { ensureInitialAdminAccount } from './services/adminBootstrap.js'
 
 async function bootstrap() {
+  console.log(`[Config] Environment file: backend/.env (${config.nodeEnv})`)
+  if (config.mongoUri.startsWith('mongodb://127.0.0.1') && process.env.MONGODB_URI) {
+    console.warn('[Config] MONGODB_URI is a template value; using local MongoDB at 127.0.0.1:27017 for development.')
+  }
   const app = createApp()
   const httpServer = createServer(app)
 
@@ -25,6 +29,15 @@ async function bootstrap() {
     console.log(`Frontend:    ${config.frontendUrl}`)
     console.log(`API Base:    http://localhost:${config.port}/api`)
     console.log(`====================================================`)
+  })
+
+  server.on('error', (err: NodeJS.ErrnoException) => {
+    if (err.code === 'EADDRINUSE') {
+      console.error(`[Startup] Port ${config.port} is already in use. Stop the existing backend process or set a different PORT in backend/.env.`)
+      process.exit(1)
+    }
+    console.error('[Startup] HTTP server failed:', err.message)
+    process.exit(1)
   })
 
   // Graceful Shutdown

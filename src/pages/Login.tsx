@@ -86,16 +86,9 @@ export default function Login({ onSignIn }: { onSignIn: () => void }) {
         return
       }
       window.location.href = url
-    } catch {
-      // In local development when Google OAuth credentials are not configured, seamlessly authenticate
-      try {
-        await devLogin()
-        localStorage.setItem('stepcharge.mode', 'live')
-        onSignIn()
-      } catch (devErr) {
-        setError((devErr as Error).message || 'Google sign-in failed. Please try again.')
-        setGoogleBusy(false)
-      }
+    } catch (err) {
+      setError((err as Error).message || 'Google sign-in is unavailable. Check backend/.env and Google OAuth settings.')
+      setGoogleBusy(false)
     }
   }
 

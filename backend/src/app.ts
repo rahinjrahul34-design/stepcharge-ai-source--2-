@@ -20,11 +20,7 @@ export function createApp(): Express {
   )
 
   // CORS Configuration
-  const allowedOrigins = [
-    config.frontendUrl,
-    'http://localhost:5173',
-    'http://127.0.0.1:5173',
-  ]
+  const allowedOrigins = [...new Set([config.frontendUrl, ...config.corsOrigins])]
 
   app.use(
     cors({
