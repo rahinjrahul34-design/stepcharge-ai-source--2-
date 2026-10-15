@@ -49,6 +49,15 @@ export function createApp(): Express {
   // Optional authentication hydration for user state
   app.use(optionalAuth)
 
+  // Root & Health Check Endpoints for cloud load balancers and Render health checks
+  app.get('/', (_req, res) => {
+    res.status(200).json({ status: 'ok', service: 'stepcharge-backend', timestamp: new Date().toISOString() })
+  })
+
+  app.get('/health', (_req, res) => {
+    res.status(200).json({ status: 'ok', uptime: Math.round(process.uptime()), timestamp: new Date().toISOString() })
+  })
+
   // Mount API Endpoints
   app.use('/api', routes)
 

@@ -20,14 +20,14 @@ async function bootstrap() {
   await connectDatabase()
   await ensureInitialAdminAccount()
 
-  // Start HTTP Server
-  const server = httpServer.listen(config.port, () => {
+  // Start HTTP Server (bind explicitly to 0.0.0.0 for Render / cloud containers)
+  const server = httpServer.listen(config.port, '0.0.0.0', () => {
     console.log(`====================================================`)
     console.log(`StepCharge AI Backend Server`)
     console.log(`Port:        ${config.port}`)
     console.log(`Environment: ${config.nodeEnv}`)
     console.log(`Frontend:    ${config.frontendUrl}`)
-    console.log(`API Base:    http://localhost:${config.port}/api`)
+    console.log(`API Base:    http://0.0.0.0:${config.port}/api`)
     console.log(`====================================================`)
   })
 
