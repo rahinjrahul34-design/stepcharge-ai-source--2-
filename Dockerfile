@@ -2,7 +2,7 @@
 FROM node:20-alpine AS builder
 WORKDIR /app
 COPY package*.json tsconfig*.json vite.config.ts index.html postcss.config.js tailwind.config.js ./
-RUN npm ci
+RUN npm install
 COPY src ./src
 COPY public ./public
 RUN npm run build
