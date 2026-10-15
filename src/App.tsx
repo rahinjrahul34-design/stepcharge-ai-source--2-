@@ -32,9 +32,19 @@ export default function App() {
     setAuthed(true)
   }
 
-  // Restore authenticated session from HTTP-only cookie on reload
+  // Restore authenticated session from HTTP-only cookie or token on reload
   useEffect(() => {
     let alive = true
+    const params = new URLSearchParams(window.location.search)
+    const urlToken = params.get('token')
+    if (urlToken) {
+      localStorage.setItem('stepcharge_token', urlToken)
+      localStorage.setItem('stepcharge.mode', 'live')
+      params.delete('token')
+      const newSearch = params.toString() ? `?${params.toString()}` : ''
+      window.history.replaceState({}, document.title, `${window.location.pathname}${newSearch}`)
+    }
+
     const checkMode = localStorage.getItem('stepcharge.mode')
 
     watchAuth((u) => {
@@ -97,6 +107,7 @@ export default function App() {
           void signOut().catch(() => undefined)
           setUser(null)
           setAuthed(false)
+          localStorage.removeItem('stepcharge_token')
           localStorage.removeItem('stepcharge.mode')
         }}
       >

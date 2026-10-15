@@ -25,12 +25,14 @@ export interface ApiResponse<T = unknown> {
 
 export async function fetchApi<T>(endpoint: string, options: RequestInit = {}): Promise<T> {
   const url = `${API_BASE_URL}${endpoint.startsWith('/') ? endpoint : `/${endpoint}`}`
+  const token = typeof window !== 'undefined' ? localStorage.getItem('stepcharge_token') : null
 
   const res = await fetch(url, {
     ...options,
     credentials: 'include', // Essential for HTTP-only session cookies
     headers: {
       'Content-Type': 'application/json',
+      ...(token ? { Authorization: `Bearer ${token}` } : {}),
       ...(options.headers || {}),
     },
   })
