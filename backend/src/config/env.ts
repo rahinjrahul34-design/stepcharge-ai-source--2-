@@ -23,17 +23,31 @@ const port = Number(process.env.PORT || 5000)
 if (!Number.isInteger(port) || port < 1 || port > 65535) {
   throw new Error('PORT must be an integer between 1 and 65535.')
 }
-const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:5173'
+let rawFrontendUrl = (process.env.FRONTEND_URL || 'http://localhost:5173').trim()
+if (rawFrontendUrl.startsWith('//')) {
+  rawFrontendUrl = `https:${rawFrontendUrl}`
+} else if (!/^https?:\/\//i.test(rawFrontendUrl)) {
+  rawFrontendUrl = `https://${rawFrontendUrl}`
+}
+const frontendUrl = rawFrontendUrl
 try {
   new URL(frontendUrl)
 } catch {
   throw new Error('FRONTEND_URL must be a valid absolute URL.')
 }
+
 const corsOrigins = (process.env.CORS_ORIGINS || 'http://localhost:5173,http://127.0.0.1:5173')
   .split(',')
   .map((origin) => origin.trim().replace(/\/$/, ''))
   .filter(Boolean)
-const googleCallbackUrl = process.env.GOOGLE_CALLBACK_URL || 'http://localhost:5000/api/auth/google/callback'
+
+let rawGoogleCallbackUrl = (process.env.GOOGLE_CALLBACK_URL || 'http://localhost:5000/api/auth/google/callback').trim()
+if (rawGoogleCallbackUrl.startsWith('//')) {
+  rawGoogleCallbackUrl = `https:${rawGoogleCallbackUrl}`
+} else if (!/^https?:\/\//i.test(rawGoogleCallbackUrl)) {
+  rawGoogleCallbackUrl = `https://${rawGoogleCallbackUrl}`
+}
+const googleCallbackUrl = rawGoogleCallbackUrl
 try {
   new URL(googleCallbackUrl)
 } catch {

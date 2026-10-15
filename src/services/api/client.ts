@@ -4,12 +4,16 @@
  */
 
 export const API_BASE_URL =
-  (import.meta.env.VITE_API_URL as string | undefined)?.replace(/\/$/, '') || 'http://localhost:5000/api'
+  (typeof window !== 'undefined' && window.location.origin && !window.location.origin.includes(':5173'))
+    ? `${window.location.origin}/api`
+    : (import.meta.env.VITE_API_URL as string | undefined)?.replace(/\/$/, '') || 'http://localhost:5000/api'
 
 export const SOCKET_BASE_URL =
-  (import.meta.env.VITE_SOCKET_URL as string | undefined)?.replace(/\/$/, '') ||
-  (import.meta.env.VITE_API_URL as string | undefined)?.replace(/\/api\/?$/, '') ||
-  'http://localhost:5000'
+  (typeof window !== 'undefined' && window.location.origin && !window.location.origin.includes(':5173'))
+    ? window.location.origin
+    : (import.meta.env.VITE_SOCKET_URL as string | undefined)?.replace(/\/$/, '') ||
+      (import.meta.env.VITE_API_URL as string | undefined)?.replace(/\/api\/?$/, '') ||
+      'http://localhost:5000'
 
 export const deviceId = () => (import.meta.env.VITE_DEVICE_ID as string) || 'ESP32-01'
 

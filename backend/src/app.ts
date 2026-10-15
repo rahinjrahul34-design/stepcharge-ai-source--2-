@@ -1,4 +1,7 @@
 import express, { Express } from 'express'
+import path from 'node:path'
+import fs from 'node:fs'
+import { fileURLToPath } from 'node:url'
 import cors from 'cors'
 import helmet from 'helmet'
 import cookieParser from 'cookie-parser'
@@ -49,17 +52,31 @@ export function createApp(): Express {
   // Optional authentication hydration for user state
   app.use(optionalAuth)
 
-  // Root & Health Check Endpoints for cloud load balancers and Render health checks
-  app.get('/', (_req, res) => {
-    res.status(200).json({ status: 'ok', service: 'stepcharge-backend', timestamp: new Date().toISOString() })
-  })
-
+  // Cloud & Render Health Check Endpoint
   app.get('/health', (_req, res) => {
     res.status(200).json({ status: 'ok', uptime: Math.round(process.uptime()), timestamp: new Date().toISOString() })
   })
 
   // Mount API Endpoints
   app.use('/api', routes)
+
+  // Frontend Static Files & SPA Fallback
+  const currentDir = path.dirname(fileURLToPath(import.meta.url))
+  const publicDir = path.resolve(currentDir, '../public')
+
+  if (fs.existsSync(publicDir) && fs.existsSync(path.join(publicDir, 'index.html'))) {
+    app.use(express.static(publicDir))
+    app.get('*', (req, res, next) => {
+      if (req.path.startsWith('/api') || req.path === '/health') {
+        return next()
+      }
+      res.sendFile(path.join(publicDir, 'index.html'))
+    })
+  } else {
+    app.get('/', (_req, res) => {
+      res.status(200).json({ status: 'ok', service: 'stepcharge-backend', timestamp: new Date().toISOString() })
+    })
+  }
 
   // 404 & Error Handling
   app.use(notFoundHandler)

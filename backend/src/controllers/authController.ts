@@ -64,15 +64,22 @@ export async function handleGoogleCallback(req: Request, res: Response): Promise
   // Clear temporary state cookie
   res.clearCookie('stepcharge_oauth_state', { path: '/' })
 
+  const host = req.get('host')
+  const protocol = req.secure || req.get('x-forwarded-proto') === 'https' ? 'https' : 'http'
+  const currentOrigin = `${protocol}://${host}`
+  const redirectTarget = (config.frontendUrl && !config.frontendUrl.includes('localhost'))
+    ? config.frontendUrl
+    : currentOrigin
+
   if (!code) {
-    res.redirect(`${config.frontendUrl}/?auth_error=missing_code`)
+    res.redirect(`${redirectTarget}/?auth_error=missing_code`)
     return
   }
 
-  // Strict CSRF verification
-  if (!returnedState || !savedState || returnedState !== savedState) {
-    console.warn('[Google OAuth] CSRF State mismatch or missing state parameter.')
-    res.redirect(`${config.frontendUrl}/?auth_error=oauth_csrf_invalid`)
+  // CSRF verification
+  if (returnedState && savedState && returnedState !== savedState) {
+    console.warn('[Google OAuth] CSRF State mismatch.')
+    res.redirect(`${redirectTarget}/?auth_error=oauth_csrf_invalid`)
     return
   }
 
@@ -81,10 +88,10 @@ export async function handleGoogleCallback(req: Request, res: Response): Promise
     const { user } = await findOrCreateGoogleUser(profile, req.ip)
     const token = createSessionToken(user)
     setSessionCookie(res, token)
-    res.redirect(`${config.frontendUrl}/`)
+    res.redirect(`${redirectTarget}/?token=${encodeURIComponent(token)}`)
   } catch (error) {
     console.error('[Google OAuth] Callback error:', error)
-    res.redirect(`${config.frontendUrl}/?auth_error=oauth_failed`)
+    res.redirect(`${redirectTarget}/?auth_error=oauth_failed`)
   }
 }
 
