@@ -8,16 +8,17 @@ const isViteDev =
   (window.location.port === '5173' || window.location.port === '5174' || window.location.port === '3000')
 
 export const API_BASE_URL =
-  (typeof window !== 'undefined' && !isViteDev && window.location.origin)
+  (import.meta.env.VITE_API_URL as string | undefined)?.replace(/\/$/, '') ||
+  (typeof window !== 'undefined' && !isViteDev && window.location.origin
     ? `${window.location.origin}/api`
-    : (import.meta.env.VITE_API_URL as string | undefined)?.replace(/\/$/, '') || 'http://localhost:5000/api'
+    : 'http://localhost:5000/api')
 
 export const SOCKET_BASE_URL =
-  (typeof window !== 'undefined' && !isViteDev && window.location.origin)
+  (import.meta.env.VITE_SOCKET_URL as string | undefined)?.replace(/\/$/, '') ||
+  (import.meta.env.VITE_API_URL as string | undefined)?.replace(/\/api\/?$/, '') ||
+  (typeof window !== 'undefined' && !isViteDev && window.location.origin
     ? window.location.origin
-    : (import.meta.env.VITE_SOCKET_URL as string | undefined)?.replace(/\/$/, '') ||
-      (import.meta.env.VITE_API_URL as string | undefined)?.replace(/\/api\/?$/, '') ||
-      'http://localhost:5000'
+    : 'http://localhost:5000')
 
 export const deviceId = () => (import.meta.env.VITE_DEVICE_ID as string) || 'ESP32-01'
 
