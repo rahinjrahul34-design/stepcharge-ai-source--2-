@@ -38,3 +38,4 @@ ml-service/.env
 tests/rules/node_modules/
 tests/rules/.firebase/
 tests/rules/database-debug.log
+.vercel
