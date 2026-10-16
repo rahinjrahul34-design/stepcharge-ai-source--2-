@@ -27,15 +27,27 @@ export function createApp(): Express {
   // CORS Configuration
   const allowedOrigins = [...new Set([config.frontendUrl, ...config.corsOrigins])]
 
+  const isOriginAllowed = (origin: string): boolean => {
+    if (allowedOrigins.includes(origin)) return true
+    try {
+      const parsed = new URL(origin)
+      if (parsed.hostname === 'localhost' || parsed.hostname === '127.0.0.1') return true
+      if (parsed.hostname.endsWith('.vercel.app') || parsed.hostname.endsWith('.onrender.com')) return true
+    } catch {
+      // ignore
+    }
+    return false
+  }
+
   app.use(
     cors({
       origin: (origin, callback) => {
         // Allow requests with no origin (like mobile apps, curl, or ESP32)
         if (!origin) return callback(null, true)
-        if (allowedOrigins.includes(origin)) {
+        if (isOriginAllowed(origin)) {
           return callback(null, true)
         }
-        return callback(new Error(`Origin ${origin} not allowed by CORS`))
+        return callback(null, false)
       },
       credentials: true,
       methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],

@@ -8,9 +8,22 @@ import { Device } from '../models/Device.js'
 let io: SocketIOServer | null = null
 
 export function initSocketIO(httpServer: HttpServer): SocketIOServer {
+  const allowedOrigins = [...new Set([config.frontendUrl, ...config.corsOrigins])]
   io = new SocketIOServer(httpServer, {
     cors: {
-      origin: [...new Set([config.frontendUrl, ...config.corsOrigins])],
+      origin: (origin, callback) => {
+        if (!origin) return callback(null, true)
+        if (
+          allowedOrigins.includes(origin) ||
+          origin.endsWith('.vercel.app') ||
+          origin.endsWith('.onrender.com') ||
+          origin.includes('localhost') ||
+          origin.includes('127.0.0.1')
+        ) {
+          return callback(null, true)
+        }
+        return callback(null, false)
+      },
       credentials: true,
       methods: ['GET', 'POST'],
     },

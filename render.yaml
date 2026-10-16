@@ -1,0 +1,35 @@
+services:
+  - type: web
+    name: stepcharge-backend
+    runtime: node
+    plan: free
+    rootDir: backend
+    buildCommand: npm install && npm run build
+    startCommand: npm start
+    healthCheckPath: /health
+    autoDeploy: true
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: PORT
+        value: 10000
+      - key: FRONTEND_URL
+        value: https://stepcharge-ai-source-2.vercel.app
+      - key: CORS_ORIGINS
+        value: https://stepcharge-ai-source-2.vercel.app,https://stepcharge-ai-source-2-d634poypi-rahul-e256.vercel.app
+      - key: MONGODB_URI
+        sync: false
+      - key: JWT_SECRET
+        generateValue: true
+      - key: GOOGLE_CLIENT_ID
+        sync: false
+      - key: GOOGLE_CLIENT_SECRET
+        sync: false
+      - key: SESSION_COOKIE_NAME
+        value: stepcharge_session
+      - key: SESSION_MAX_AGE_MS
+        value: 604800000
+      - key: DEFAULT_DEVICE_ID
+        value: ESP32-01
+      - key: DEVICE_AUTO_PROVISION
+        value: false

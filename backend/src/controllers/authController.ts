@@ -42,7 +42,7 @@ export async function getAuthUrl(req: Request, res: Response): Promise<void> {
   res.cookie('stepcharge_oauth_state', state, {
     httpOnly: true,
     secure: config.isProd,
-    sameSite: 'lax',
+    sameSite: config.isProd ? 'none' : 'lax',
     maxAge: 10 * 60 * 1000, // 10 minutes
     path: '/',
   })
@@ -62,7 +62,11 @@ export async function handleGoogleCallback(req: Request, res: Response): Promise
   const savedState = req.cookies?.stepcharge_oauth_state
 
   // Clear temporary state cookie
-  res.clearCookie('stepcharge_oauth_state', { path: '/' })
+  res.clearCookie('stepcharge_oauth_state', {
+    path: '/',
+    secure: config.isProd,
+    sameSite: config.isProd ? 'none' : 'lax',
+  })
 
   const host = req.get('host')
   const protocol = req.secure || req.get('x-forwarded-proto') === 'https' ? 'https' : 'http'

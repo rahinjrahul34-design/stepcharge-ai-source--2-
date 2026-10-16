@@ -23,7 +23,10 @@ const port = Number(process.env.PORT || 5000)
 if (!Number.isInteger(port) || port < 1 || port > 65535) {
   throw new Error('PORT must be an integer between 1 and 65535.')
 }
-let rawFrontendUrl = (process.env.FRONTEND_URL || 'http://localhost:5173').trim()
+let rawFrontendUrl = (
+  process.env.FRONTEND_URL ||
+  (isDevelopment ? 'http://localhost:5173' : 'https://stepcharge-ai-source-2.vercel.app')
+).trim()
 if (rawFrontendUrl.startsWith('//')) {
   rawFrontendUrl = `https:${rawFrontendUrl}`
 } else if (!/^https?:\/\//i.test(rawFrontendUrl)) {
@@ -36,12 +39,23 @@ try {
   throw new Error('FRONTEND_URL must be a valid absolute URL.')
 }
 
-const corsOrigins = (process.env.CORS_ORIGINS || 'http://localhost:5173,http://127.0.0.1:5173')
+const defaultCorsOrigins = isDevelopment
+  ? 'http://localhost:5173,http://127.0.0.1:5173'
+  : 'https://stepcharge-ai-source-2.vercel.app,https://stepcharge-ai-source-2-d634poypi-rahul-e256.vercel.app,http://localhost:5173'
+
+const corsOrigins = (process.env.CORS_ORIGINS || defaultCorsOrigins)
   .split(',')
   .map((origin) => origin.trim().replace(/\/$/, ''))
   .filter(Boolean)
 
-let rawGoogleCallbackUrl = (process.env.GOOGLE_CALLBACK_URL || 'http://localhost:5000/api/auth/google/callback').trim()
+const defaultCallback = process.env.RENDER_EXTERNAL_URL
+  ? `${process.env.RENDER_EXTERNAL_URL.replace(/\/$/, '')}/api/auth/google/callback`
+  : 'http://localhost:5000/api/auth/google/callback'
+
+let rawGoogleCallbackUrl = (process.env.GOOGLE_CALLBACK_URL || defaultCallback).trim()
+if (process.env.RENDER_EXTERNAL_URL && rawGoogleCallbackUrl.includes('localhost')) {
+  rawGoogleCallbackUrl = `${process.env.RENDER_EXTERNAL_URL.replace(/\/$/, '')}/api/auth/google/callback`
+}
 if (rawGoogleCallbackUrl.startsWith('//')) {
   rawGoogleCallbackUrl = `https:${rawGoogleCallbackUrl}`
 } else if (!/^https?:\/\//i.test(rawGoogleCallbackUrl)) {

@@ -5,8 +5,10 @@ let socket: Socket | null = null
 
 export function getSocket(): Socket {
   if (!socket) {
+    const token = typeof window !== 'undefined' ? localStorage.getItem('stepcharge_token') : null
     socket = io(SOCKET_BASE_URL, {
       withCredentials: true,
+      auth: token ? { token } : undefined,
       autoConnect: true,
       reconnection: true,
       reconnectionAttempts: 20,
