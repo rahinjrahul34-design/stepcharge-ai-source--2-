@@ -1,0 +1,204 @@
+\chapter{Problem Definition and Scope}
+
+\section{Problem Statement}
+In urban public environments and high-foot-traffic facilities, substantial mechanical kinetic energy is continuously imparted onto flooring surfaces by pedestrian movement. In standard architectural infrastructures, this mechanical energy dissipates completely into the flooring substrate as acoustic noise and low-grade thermal vibration. Concurrently, modern smart buildings, transport hubs, and campus facilities require dense deployments of low-power Internet of Things (IoT) sensor nodes, pathway lighting beacons, and foot-traffic monitoring devices. These electronic systems typically rely on disposable chemical batteries, which entail high recurring maintenance costs, finite operational lifetimes, and severe environmental disposal hazards, or require disruptive hardwired AC mains infrastructure.
+
+However, capturing and utilizing ambient human footstep energy presents formidable multidimensional engineering challenges:
+\begin{enumerate}
+    \item \textbf{Electromechanical Transduction and Storage Mismatch:} Piezoelectric transducers generate high-voltage, low-current, high-impedance AC electrical pulses characterized by transient spikes and low fundamental frequencies ($1.0\text{--}2.5\,\text{Hz}$). Direct connection to low-impedance storage components or direct-current electronics collapses the terminal voltage, leading to negligible energy transfer. Efficiently rectifying, protecting, and accumulating this irregular energy into an electrostatic storage buffer (such as a supercapacitor) without exceeding voltage ratings or suffering severe leakage represents a significant circuit challenge.
+    \item \textbf{Edge Sensing and Signal Conditioning under Ambient Noise:} Footstep kinetic waveforms are susceptible to high-frequency electromagnetic interference (EMI), mechanical rebound vibrations, and acoustic floor noise. Conventional edge counters that rely on simple threshold comparators routinely suffer from false multiple-triggering or missed detections. Acquiring clean voltage transients on low-power microcontrollers without loading down the high-impedance harvesting rail requires precision signal conditioning and robust digital filtering.
+    \item \textbf{Biomechanical Classification and Data Leakage:} While the temporal amplitude characteristics of footstep pulses correlate with impact intensity and gait dynamics, existing analytics systems frequently suffer from data leakage. Models trained on random splits memorize individual cadence rhythms rather than generalizable kinetic intensity features.
+    \item \textbf{Real-Time Observability and Verifiable Control:} Most energy harvesting setups operate as blind analog prototypes lacking digital telemetry, real-time cloud data pipelines, or verifiable load actuation. Open-loop control systems falsely assume that sending a network actuation command implies successful physical hardware switching.
+\end{enumerate}
+
+Therefore, the core problem is to design, construct, and validate an integrated cyber-physical platform---\textbf{StepCharge AI}---that captures kinetic footstep energy, conditions and stores it into a supercapacitor, acquires calibrated dual-channel analog telemetry via an ESP32 microcontroller, securely streams time-series data to a cloud database, classifies footstep impact intensity using machine learning with subject-independent validation, and provides real-time web observability with closed-loop hardware load confirmation.
+
+\section{Goals and Objectives}
+The overall goal of StepCharge AI is to deliver a functional, research-grade, and academically defensible IoT kinetic energy harvesting and monitoring platform. The specific operational objectives are:
+\begin{itemize}
+    \item \textbf{Objective 1 (Physical Transduction):} Assemble a piezoelectric transducer tile capable of converting human heel-strike and toe-off mechanical impacts into electrical charge.
+    \item \textbf{Objective 2 (Power Conditioning and Storage):} Implement a low forward-drop Schottky bridge rectifier and a 0.1\,F, 5.5\,V supercapacitor storage buffer with hardware clamping and software safety guards.
+    \item \textbf{Objective 3 (Edge Filtering and Detection):} Program an ESP32 microcontroller to execute 16$\times$ ADC oversampling, Exponential Moving Average smoothing ($\alpha = 0.25$), and dual-threshold Schmitt trigger step detection ($V_{\text{high}} = 0.80\,\text{V}$, $V_{\text{low}} = 0.55\,\text{V}$) with a 200--250\,ms refractory lockout.
+    \item \textbf{Objective 4 (Secure Telemetry Pipeline):} Implement a RESTful Node.js + Express backend that authenticates edge devices using SHA-256 tokens and enforces role-based access control (RBAC).
+    \item \textbf{Objective 5 (Cloud Persistence):} Store telemetry frames and footstep events in MongoDB Atlas using compound indices optimized for real-time querying.
+    \item \textbf{Objective 6 (Real-Time Push Distribution):} Stream live data to connected web clients via Socket.IO room namespaces.
+    \item \textbf{Objective 7 (Machine Learning Classification):} Train a Random Forest model on 5 time-domain physical features to classify footsteps into \texttt{LIGHT}, \texttt{NORMAL}, and \texttt{HEAVY} categories, evaluated using Stratified Group $K$-Fold cross-validation.
+    \item \textbf{Objective 8 (Interactive Web Dashboard):} Build a responsive React 19 + TypeScript dashboard featuring real-time dials, historical charts, AI classification feeds, and closed-loop load state indicators.
+\end{itemize}
+
+\section{Statement of Scope}
+The scope of the StepCharge AI preliminary project is precisely bounded as follows:
+\begin{itemize}
+    \item \textbf{In-Scope:}
+    \begin{itemize}
+        \item Design and benchtop fabrication of a single-tile piezoelectric harvester module housing multiple PZT discs.
+        \item Full-wave Schottky rectification, overvoltage clamping, and supercapacitor storage.
+        \item Dual-channel analog voltage sensing (piezo pulse voltage on GPIO 34, supercapacitor storage voltage on GPIO 35) via calibrated resistive dividers.
+        \item ESP32 C++ firmware performing digital filtering, Schmitt trigger step detection, and periodic HTTPS REST telemetry.
+        \item Node.js, Express, and TypeScript backend architecture with MongoDB Atlas integration and Socket.IO real-time broadcasting.
+        \item Supervised machine learning training and RESTful inferencing using Random Forests with subject-independent validation.
+        \item React 19 web application displaying live metrics, analytics, and closed-loop load switching indicators.
+        \item Demonstration load control of low-power DC devices (LED and 5\,V mini DC fan) via N-channel MOSFET drivers.
+    \end{itemize}
+    \item \textbf{Out-of-Scope (Future Enhancements):}
+    \begin{itemize}
+        \item Large-scale building-wide deployment across multiple interconnected hallway tiles.
+        \item High-power AC mains grid inversion or powering heavy electrical appliances (such as laptops or large industrial motors).
+        \item On-device edge neural network execution via micro-TensorFlow (inferencing is performed in the Python cloud service).
+        \item Direct current sensing via physical shunt resistors (power and energy are mathematically estimated from capacitor voltage variations; current is explicitly reported as unavailable).
+    \end{itemize}
+\end{itemize}
+
+\section{Existing System}
+Existing kinetic energy harvesting installations are predominantly characterized by:
+\begin{itemize}
+    \item \textbf{Self-Contained Analog Harvesters:} Prototype tiles that connect piezoelectric elements directly to bridge rectifiers and flash an LED or drive an analog voltage meter without digital computation.
+    \item \textbf{Non-Instrumented Benchtop Setups:} Academic test rigs driven by electrodynamic vibration shakers producing continuous sinusoidal excitations, which fail to replicate the impulsive, discontinuous nature of human gait.
+    \item \textbf{Isolated IoT Sensor Nodes:} Standard IoT monitoring systems that measure ambient building parameters (temperature, humidity) powered entirely by conventional batteries or wall adapters without energy scavenging capability.
+\end{itemize}
+
+\section{Limitations of Existing Approaches}
+The limitations inherent in existing systems include:
+\begin{enumerate}
+    \item \textbf{Zero Longitudinal Observability:} Without digital logging or cloud connectivity, existing systems cannot record cumulative energy yields, degradation trends, or temporal traffic density.
+    \item \textbf{False Triggering in Step Detection:} Fixed analog comparators lack dynamic hysteresis and refractory timing, leading to multiple counts per single footstep due to mechanical rebound.
+    \item \textbf{Methodological Leakage in AI Classification:} Published machine learning gait classifiers commonly employ randomized cross-validation splits, resulting in identity memorization rather than generalizable kinetic intensity detection.
+    \item \textbf{Unverified Load Actuation:} Open-loop IoT controls assume that issuing a toggle request guarantees hardware state transition without confirming physical pin voltages.
+    \item \textbf{Inaccurate Energy Claims:} Conflating peak instantaneous open-circuit voltages with usable deliverable energy without accounting for source impedance, rectifier forward losses, and capacitor ESR.
+\end{enumerate}
+
+\section{Proposed System}
+The proposed \textbf{StepCharge AI} platform resolves these limitations by implementing a unified, multi-tiered architecture that tightly couples physical harvesting with digital intelligence:
+\begin{itemize}
+    \item \textbf{Physical Layer:} PZT transducer matrix feeding a low forward-drop Schottky bridge rectifier, protected by transient voltage suppression, buffering charge into a 0.1\,F / 5.5\,V supercapacitor.
+    \item \textbf{Embedded Layer:} ESP32 dual-core SoC running firmware that acquires analog voltages at 50\,Hz with 16$\times$ oversampling, applies Exponential Moving Average smoothing, evaluates footsteps through a dual-threshold Schmitt trigger with hysteresis, and manages closed-loop MOSFET load switching.
+    \item \textbf{Cloud \& API Layer:} Node.js + Express backend written in TypeScript implementing SHA-256 device authentication, Google OAuth 2.0 user sessions, rate limiting, and MongoDB Atlas time-series persistence.
+    \item \textbf{Real-Time Layer:} Socket.IO room namespaces enabling instant telemetry updates to connected clients without polling.
+    \item \textbf{AI Analytics Layer:} Python FastAPI microservice providing Random Forest classification trained via subject-independent Stratified Group $K$-Fold cross-validation across 5 extracted time-domain features.
+    \item \textbf{Presentation Layer:} React 19 + TypeScript dashboard rendering live dials, historical charts, AI inference feeds, and verified load states.
+\end{itemize}
+
+\section{Software Context}
+StepCharge AI operates at the intersection of renewable energy technology, edge computing, and cloud analytics. Within the smart infrastructure software ecosystem, it functions as an intelligent middleware node that bridges low-level physical electromechanical transducers with high-level building management systems (BMS), facility occupancy dashboards, and decentralized IoT microgrids.
+
+\section{Major Constraints}
+The system operates under several strict physical, embedded, and computational constraints:
+\begin{enumerate}
+    \item \textbf{Piezoelectric Non-Linearity and Brittleness:} PZT ceramics exhibit non-linear charge generation under high impact forces ($>800\,\text{N}$) and are prone to mechanical cracking under unbuffered point loads, requiring structural load-distribution plates and elastomeric damping.
+    \item \textbf{Footwear Mechanical Damping:} Footwear compliance introduces significant low-pass mechanical filtering. Thick elastomeric running shoe soles attenuate peak impact voltage by up to $40\%$ and broaden pulse duration compared to hard-soled dress shoes.
+    \item \textbf{ESP32 ADC Non-Linearities:} The built-in 12-bit SAR ADC exhibits non-linear compression below $0.1\,\text{V}$ and above $3.1\,\text{V}$ under 11\,dB attenuation, necessitating precision resistive dividers ($2:1$ ratio) and calibrated voltage mapping.
+    \item \textbf{ADC2 Wi-Fi Conflict:} The ESP32 cannot sample ADC2 channels while the Wi-Fi radio is active. All analog inputs are strictly constrained to ADC1 channels (GPIO 34 and GPIO 35).
+    \item \textbf{Supercapacitor ESR and Leakage:} A 0.1\,F supercapacitor possesses non-zero Equivalent Series Resistance ($\text{ESR} \approx 25\,\Omega$) and self-discharge leakage ($5\text{--}15\,\mu\text{A}$), meaning stored energy dissipates over extended idle periods.
+    \item \textbf{Network Propagation Latency:} Wi-Fi transmissions in dense 2.4\,GHz RF environments experience transient retry latencies ($50\text{--}300\,\text{ms}$), requiring local memory buffering on the ESP32 to prevent telemetry loss.
+    \item \textbf{Measurement Provenance Rule:} When only voltage is sampled across the storage capacitor, the system strictly calculates \textit{estimated stored energy} via $E = \frac{1}{2} C V^2$. Current and instantaneous power are explicitly labeled as \texttt{Not Measured} rather than synthesized.
+\end{enumerate}
+
+\section{Methodologies of Problem Solving and Efficiency Issues}
+To address these technical constraints, the project employs systematic engineering methodologies:
+\begin{itemize}
+    \item \textbf{Dual-Threshold Schmitt Trigger with Hysteresis:} Prevents noise-induced false counting. A footstep begins only when the rectified voltage exceeds $V_{\text{high}} = 0.80\,\text{V}$ and concludes only after falling below $V_{\text{low}} = 0.55\,\text{V}$.
+    \item \textbf{Refractory Lockout Timing:} A $200\text{--}250\,\text{ms}$ refractory window is enforced following each detected step, ignoring secondary mechanical bounce vibrations.
+    \item \textbf{Pulse Duration Boundary Filtering:} Validates that detected pulses satisfy $60\,\text{ms} \le T_{\text{pulse}} \le 2000\,\text{ms}$, successfully rejecting electrical noise spikes ($<60\,\text{ms}$) and static standing weight ($>2000\,\text{ms}$).
+    \item \textbf{Subject-Independent GroupKFold Partitioning:} Groups dataset samples by participant identifier, guaranteeing that no participant's steps appear in both training and testing folds, eliminating gait identity memorization.
+    \item \textbf{Closed-Loop GPIO Readback:} The ESP32 drives the MOSFET gate, reads the physical logic level directly from the output pin, and transmits the verified state back to the backend.
+\end{itemize}
+
+\section{Scenario in Which Multi-Core, Embedded and Distributed Computing Used}
+StepCharge AI integrates computing paradigms across multiple tiers:
+\begin{enumerate}
+    \item \textbf{Multi-Core Edge Processing:} The ESP32 incorporates dual 32-bit Xtensa LX6 cores. Core 0 is assigned exclusively to the real-time TCP/IP networking stack, Wi-Fi association, and HTTPS transport. Core 1 runs the time-critical sensor acquisition loop, executing 50\,Hz sampling, oversampling accumulation, EMA digital filtering, Schmitt trigger evaluation, and GPIO readback without blocking on network latency.
+    \item \textbf{Embedded Computing:} On-device edge processing filters noise and extracts preliminary temporal properties (pulse peak, average, and duration) directly on the microcontroller, compressing continuous high-frequency analog waveforms into lightweight JSON event packets.
+    \item \textbf{Distributed Cloud Architecture:} The cloud backend is decoupled into independent distributed microservices: a Node.js REST API gateway, a MongoDB Atlas distributed database replica set, a Python FastAPI machine learning inferencing microservice, and browser-based React clients communicating via WebSockets.
+\end{enumerate}
+
+\section{Expected Outcomes}
+The expected outcomes of the preliminary engineering phase include:
+\begin{itemize}
+    \item A fully assembled, calibrated piezoelectric harvesting tile prototype and power conditioning circuit.
+    \item Operational ESP32 firmware achieving accurate footstep counts and reliable dual-rail voltage sensing.
+    \item A tested Node.js backend supporting secure device authentication and sub-millisecond database queries.
+    \item An operational Socket.IO pipeline pushing real-time events to web clients.
+    \item A trained Random Forest model achieving $>85\%$ cross-validated accuracy under strict subject-independent validation.
+    \item A responsive web dashboard rendering live dials, historical charts, and verified load switching states.
+\end{itemize}
+
+\section{Applications}
+Potential real-world applications of StepCharge AI include:
+\begin{itemize}
+    \item \textbf{Smart Transit Hubs:} Deploying harvesting tiles in subway turnstiles, airport terminals, and train platforms to power emergency pathway lighting and BLE passenger tracking beacons.
+    \item \textbf{Academic and Corporate Campuses:} Installing smart tiles in high-traffic corridors to generate localized auxiliary energy while logging foot-traffic volume.
+    \item \textbf{Retail and Commercial Analytics:} Tracking pedestrian density, dwell times, and walking velocity distributions in shopping centers without invasive video cameras.
+    \item \textbf{Smart Building Energy Optimization:} Linking foot-traffic cadence to automated HVAC and lighting control systems.
+\end{itemize}
+
+\section{Hardware Resources Required}
+The hardware specifications required for the physical prototype and testing environment are detailed in Table~\ref{tab:hardware_resources}.
+
+\begin{table}[H]
+\centering
+\small
+\renewcommand{\arraystretch}{1.2}
+\caption{Hardware specifications and prototype bill of materials.}
+\label{tab:hardware_resources}
+\begin{tabularx}{\textwidth}{|p{1.4in}|p{2.2in}|p{2.3in}|}
+\hline
+\textbf{Component} & \textbf{Model / Specifications} & \textbf{Functional Role} \\
+\hline
+Microcontroller & Espressif ESP32-WROOM-32D (Dual-Core, 240\,MHz, 520\,KB SRAM, Wi-Fi/BLE) & Edge acquisition, digital filtering, Schmitt trigger detection, HTTPS telemetry. \\
+\hline
+Piezoelectric Transducers & 35\,mm PZT-5 Ceramic Brass Diaphragm Discs (Quantity: 8) & Kinetic compressive impact transduction into electrical charge. \\
+\hline
+Bridge Rectifier & Schottky Diode Bridge (1N5819, $V_F \approx 0.35\,\text{V}$) & Full-wave AC-to-DC rectification with low forward voltage loss. \\
+\hline
+Energy Storage Buffer & 0.1\,F / 5.5\,V Supercapacitor (Electric Double-Layer Capacitor) & Electrostatic storage reservoir for harvested kinetic energy. \\
+\hline
+Overvoltage Protection & 5.1\,V Zener / TVS Clamping Diode & Clamps excessive voltage spikes to protect the supercapacitor and ADC. \\
+\hline
+Voltage Dividers & $100\,\text{k}\Omega / 100\,\text{k}\Omega$ Metal Film Resistors ($2:1$ ratio, 1\% tolerance) & Attenuates input voltages to match the $0\text{--}3.3\,\text{V}$ ESP32 ADC range. \\
+\hline
+MOSFET Drivers & 2N7000 / IRLZ44N Logic-Level N-Channel MOSFETs & Low-side switching of demonstration loads via ESP32 GPIOs. \\
+\hline
+Demonstration Loads & High-Efficiency 5\,mm Green LED \& 5\,V Miniature DC Brushless Fan & Verification and demonstration of stored energy utilization. \\
+\hline
+Development PC & Intel Core i5/i7 (8-Core), 16\,GB RAM, 512\,GB SSD, Windows 11 & Firmware compilation, local API testing, ML model training. \\
+\hline
+\end{tabularx}
+\end{table}
+
+\section{Software Resources Required}
+The software stack and development tools utilized across the platform are outlined in Table~\ref{tab:software_resources}.
+
+\begin{table}[H]
+\centering
+\small
+\renewcommand{\arraystretch}{1.2}
+\caption{Software frameworks, development environments, and toolchain.}
+\label{tab:software_resources}
+\begin{tabularx}{\textwidth}{|p{1.5in}|p{2.2in}|p{2.2in}|}
+\hline
+\textbf{Category} & \textbf{Technology / Library} & \textbf{Version / Purpose} \\
+\hline
+Firmware Toolchain & Arduino IDE / PlatformIO with Espressif ESP32 Core & v2.0.14+; C++ firmware compilation and flashing. \\
+\hline
+Firmware Libraries & \texttt{WiFi.h}, \texttt{HTTPClient.h}, \texttt{ArduinoJson.h} & v7.x; TLS networking and JSON serialization. \\
+\hline
+Backend Runtime & Node.js with TypeScript & v20.x LTS; asynchronous event-driven server. \\
+\hline
+Backend Framework & Express.js & v4.19+; RESTful API routing and middleware. \\
+\hline
+Database \& ODM & MongoDB Atlas with Mongoose ODM & v7.0+; cloud document store and schema validation. \\
+\hline
+Real-Time Engine & Socket.IO & v4.7+; bidirectional WebSocket communication. \\
+\hline
+Machine Learning & Python 3.11+, Scikit-Learn, Pandas, NumPy, Joblib & v1.4+; Random Forest training, evaluation, inference. \\
+\hline
+ML Serving API & FastAPI with Uvicorn ASGI & v0.110+; high-performance HTTP microservice. \\
+\hline
+Frontend Framework & React 19, TypeScript, Vite & v19.0 / Vite 5; modular component architecture. \\
+\hline
+Styling \& Visuals & Tailwind CSS, Lucide React, Recharts & Modern responsive UI, SVG icons, time-series charts. \\
+\hline
+Testing Frameworks & Vitest (Backend), Unittest (ML Service) & 101 automated security and functional unit tests. \\
+\hline
+\end{tabularx}
+\end{table}

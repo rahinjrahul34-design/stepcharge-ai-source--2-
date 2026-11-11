@@ -1,0 +1,84 @@
+\chapter{Introduction}
+
+\section{Introduction}
+Rapid urbanization, smart city modernization, and the explosive proliferation of distributed Internet of Things (IoT) devices have intensified the demand for localized, sustainable, and maintenance-free auxiliary power generation. Conventional edge sensor nodes, structural health monitors, and public transit tracking beacons rely predominantly on chemical batteries or hardwired grid infrastructure. Chemical batteries, however, introduce substantial maintenance overheads, finite operational lifespans, periodic replacement costs, and severe environmental recycling concerns. Conversely, human locomotion in high-density facilities---such as metropolitan railway terminals, airport concourses, university campuses, shopping complexes, and industrial walkways---continuously deposits substantial mechanical kinetic energy into floor surfaces. In standard architectural environments, this kinetic impact energy dissipates completely as acoustic noise and low-grade thermal vibration into the flooring substrate.
+
+Energy harvesting, also referred to as ambient power scavenging, offers an elegant paradigm to reclaim this otherwise wasted kinetic energy. By utilizing piezoelectric ceramic materials that exhibit the direct piezoelectric effect, mechanical compressive stress generated during human heel-strike and toe-off transitions can be converted directly into electrical charge. When paired with high-efficiency rectification, capacitive energy accumulation, low-power edge microcontrollers, and modern cloud analytics, footstep energy harvesting transforms inert architectural surfaces into active, decentralized micro-power stations and intelligent human activity monitoring platforms.
+
+\section{Project Idea}
+The project idea behind \textbf{StepCharge AI: Smart Footstep Energy Harvesting and Monitoring System} is to develop an integrated cyber-physical platform that bridges physical energy harvesting and digital data intelligence. Rather than treating kinetic energy harvesting merely as an isolated electrical power exercise, StepCharge AI instruments the physical tile with edge sensing, high-speed telemetry, cloud databases, machine learning microservices, and real-time visualization dashboards. 
+
+The physical tile comprises a parallel-series array of Lead Zirconate Titanate (PZT) piezoelectric ceramic discs housed within an impact-absorbing mechanical housing. Mechanical footfalls produce transient high-voltage alternating current (AC) pulses, which are routed through a low forward-drop Schottky bridge rectifier and buffered into a 0.1\,F, 5.5\,V supercapacitor. Simultaneously, an Espressif ESP32 dual-core microcontroller samples the rectified pulse and storage rail voltages using calibrated analog-to-digital converter (ADC) channels. The edge firmware applies real-time digital filtering, executes dual-threshold Schmitt trigger step detection, and transmits telemetry frames over Wi-Fi via secure TLS/HTTPS REST APIs to a Node.js and Express backend. The data is persisted in MongoDB Atlas, streamed instantaneously via Socket.IO to a React web dashboard, and analyzed by a Python machine learning microservice that extracts kinetic feature vectors to classify footstep intensity into light, normal, and heavy walking profiles.
+
+\section{Motivation of the Project}
+The primary motivations driving the development of StepCharge AI include:
+\begin{enumerate}
+    \item \textbf{Decentralized Green Energy for Edge Devices:} Eliminating or reducing dependence on disposable electrochemical batteries for localized low-power IoT devices (such as BLE beacons, pathway lighting, and environmental sensor nodes) by capturing clean, renewable kinetic energy directly from human movement.
+    \item \textbf{Lack of Data Instrumentation in Conventional Harvesters:} Most existing academic and hobbyist footstep harvesting setups operate strictly as unmonitored analog power circuits. They lack continuous digital measurement, data persistence, and remote telemetry, making it difficult to assess real-world energy yields, temporal degradation, or usage patterns.
+    \item \textbf{Synergy between Energy Scavenging and Biomechanical Sensing:} Every footstep produces a distinctive voltage-time transient wave that encodes physical impact force, stance duration, and cadence. This presents an unexploited opportunity to combine energy harvesting with non-intrusive gait monitoring, foot traffic density counting, and intensity classification using artificial intelligence.
+    \item \textbf{Rigorous Engineering Provenance:} Much of the existing literature claims unrealistic power outputs without proper measurement transparency. There is a pressing need for an honest, research-grade engineering implementation that explicitly distinguishes directly measured physical quantities from derived estimates, while upholding strict scientific evaluation standards.
+\end{enumerate}
+
+\section{Background of Footstep Energy Harvesting}
+The physical foundation of kinetic footstep energy scavenging lies in the direct piezoelectric effect discovered by Jacques and Pierre Curie in 1880. Certain anisotropic crystalline and polycrystalline ceramic materials---most notably Lead Zirconate Titanate ($\text{Pb}[\text{Zr}_x\text{Ti}_{1-x}]\text{O}_3$, or PZT)---exhibit electric dipole polarization when subjected to external mechanical strain. The constitutive electromechanical relationship governing the direct piezoelectric effect is expressed as:
+\begin{equation}
+D_i = d_{ijk} \sigma_{jk} + \varepsilon_{ik}^T E_k
+\label{eq:piezo_constitutive}
+\end{equation}
+where $D_i$ denotes the electric displacement vector ($\text{C/m}^2$), $d_{ijk}$ represents the piezoelectric charge coefficient tensor ($\text{C/N}$), $\sigma_{jk}$ is the applied mechanical stress tensor ($\text{N/m}^2$), $\varepsilon_{ik}^T$ is the dielectric permittivity at constant mechanical stress ($\text{F/m}$), and $E_k$ is the internal electric field vector ($\text{V/m}$).
+
+When a pedestrian steps onto a piezoelectric tile, the applied vertical impact generates a rapid stress transient $\sigma(t)$, generating positive and negative charges on the opposing metallized electrodes of the disc. Because human gait produces oscillatory loading and unloading cycles, the resulting electrical output is inherently alternating current (AC) with high open-circuit peak voltages (often $10\,\text{V}$ to $40\,\text{V}$ depending on impact velocity and disc quantity) but high internal source impedance, yielding microampere-to-milliampere-level currents. To render this electrical energy usable for direct current (DC) electronics, the raw waveform must undergo full-wave rectification and capacitive smoothing before transfer into an electrostatic storage buffer, such as an electric double-layer supercapacitor.
+
+\section{Role of IoT in Energy Monitoring}
+The Internet of Things (IoT) serves as the digital backbone that elevates StepCharge AI from a passive energy collector to a connected edge system. An instrumented IoT architecture introduces the following essential capabilities:
+\begin{itemize}
+    \item \textbf{Edge Signal Acquisition:} High-speed sampling of fluctuating analog voltages directly at the point of generation, executing local noise rejection without loading down the high-impedance transducer output.
+    \item \textbf{Real-Time Wireless Telemetry:} Transmitting instantaneous voltage levels, step detection events, cumulative step counts, and hardware health metrics over standard IEEE 802.11 b/g/n Wi-Fi channels.
+    \item \textbf{Cloud Persistence and Scalability:} Ingesting time-series telemetry into high-availability cloud database clusters (MongoDB Atlas), enabling multi-device aggregation, historical rollups, and longitudinal performance tracking.
+    \item \textbf{Bidirectional Control and Telecommand:} Providing a secure control channel to dispatch commands to edge devices, such as toggling demonstration loads (LEDs, DC fans) and verifying real GPIO readback states.
+\end{itemize}
+
+\section{Role of Machine Learning in Footstep Classification}
+While traditional footstep counters rely solely on fixed hardware comparators or simple threshold crossings, human gait dynamics are complex, multi-dimensional, and variable across individuals. Walking cadence, footwear compliance, body mass, and stepping force modulate the kinetic pulse waveform in distinct ways. A hard impact by a running individual produces a sharp rise time with elevated peak voltage, whereas a gentle, shuffling step produces a flatter, elongated pulse with moderate amplitude.
+
+Machine learning enables automated, multi-feature pattern recognition on these kinetic transients. By extracting deterministic physical feature vectors---specifically peak pulse voltage ($V_{\text{peak}}$), mean voltage over pulse duration ($V_{\text{avg}}$), pulse duration ($T_{\text{pulse}}$), inter-step cadence interval ($\Delta T_{\text{step}}$), and buffer rail storage voltage ($V_{\text{storage}}$)---supervised classification algorithms such as Random Forests can categorize footsteps into distinct intensity classes (\texttt{LIGHT}, \texttt{NORMAL}, \texttt{HEAVY}). This classification provides valuable behavioral analytics for smart floor installations, identifying pedestrian congestion zones, walking speed distributions, and dynamic foot-traffic loading without invading individual privacy through optical cameras or intrusive wearable sensors.
+
+\section{Project Overview}
+StepCharge AI integrates multiple engineering disciplines into a cohesive six-tier architecture:
+\begin{enumerate}
+    \item \textbf{Edge Transducer and Power Conditioning Layer:} Housed within a custom mechanical tile structure, consisting of piezoelectric discs, full-wave Schottky bridge rectification, TVS overvoltage clamping, and a 0.1\,F / 5.5\,V supercapacitor storage reservoir.
+    \item \textbf{Embedded Microcontroller Layer:} An ESP32 microcontroller operating custom C++ firmware that executes 50\,Hz analog envelope acquisition, 16$\times$ ADC oversampling, Exponential Moving Average smoothing, Schmitt-trigger step detection, and TLS-encrypted REST transmission.
+    \item \textbf{Backend Application Layer:} A Node.js and Express server written in TypeScript providing RESTful API endpoints, device authentication via cryptographic SHA-256 tokens, Google OAuth 2.0 user sessions with HTTP-only cookies, and rate-limiting security guards.
+    \item \textbf{Real-Time Streaming Layer:} An integrated Socket.IO gateway managing device-scoped room subscriptions to push instantaneous telemetry and event notifications to active clients with sub-100\,ms latency.
+    \item \textbf{Database Layer:} MongoDB Atlas document database structured with optimized compound indices on device identifiers and descending timestamps, supporting sub-millisecond range queries and historical aggregation pipelines.
+    \item \textbf{Machine Learning Microservice Layer:} A Python FastAPI service hosting a scikit-learn Random Forest model trained using subject-independent Stratified Group $K$-Fold cross-validation to classify footstep impacts in real time.
+    \item \textbf{Client Dashboard Layer:} A modern, responsive web application engineered in React 19, TypeScript, Vite, and Tailwind CSS, featuring live telemetry dials, interactive time-series charts, AI classification feeds, historical data tables, and closed-loop load switching indicators.
+\end{enumerate}
+
+\section{Objectives of the Project}
+The primary technical and academic objectives of StepCharge AI are formulated as follows:
+\begin{enumerate}
+    \item To design, construct, and calibrate a physical piezoelectric energy harvesting floor tile prototype capable of generating measurable electrical energy from standard pedestrian footsteps.
+    \item To implement a power conditioning circuit incorporating Schottky bridge rectification and a 0.1\,F supercapacitor storage buffer with hardware and software overvoltage protection.
+    \item To develop edge firmware for the ESP32 microcontroller that reliably samples analog voltages, applies digital filtering, detects steps via a dual-threshold Schmitt trigger with hysteresis, and rejects false double-triggers through refractory lockout timing.
+    \item To construct an asynchronous, secure REST API using Node.js, Express, and TypeScript that authenticates edge devices using SHA-256 tokens and enforces role-based access control (RBAC).
+    \item To persist edge telemetry and discrete footstep events into a cloud-hosted MongoDB Atlas database utilizing time-series indexing.
+    \item To implement a real-time event distribution engine using Socket.IO that streams live metrics to web clients without continuous client-side polling.
+    \item To build and evaluate a supervised Machine Learning pipeline in Python that extracts time-domain physical features from footstep transients and classifies impacts into intensity categories using subject-independent validation.
+    \item To engineer a web-based dashboard using React 19, TypeScript, and Tailwind CSS that renders real-time dials, historical charts, AI prediction confidence, and closed-loop load confirmation.
+    \item To uphold strict engineering measurement honesty by maintaining clear distinctions between measured electrical quantities and calculated capacitor energy estimates.
+\end{enumerate}
+
+\section{Organization of the Report}
+The remainder of this report is organized into the following chapters:
+\begin{itemize}
+    \item \textbf{Chapter 2 (Literature Survey):} Reviews published research in kinetic energy harvesting, piezoelectric transducers, IoT energy monitoring, and machine-learning-based gait classification, presenting a comparative analysis table and identifying key research gaps.
+    \item \textbf{Chapter 3 (Problem Definition and Scope):} Formulates the engineering problem statement, defines project scope and constraints, details problem-solving methodologies, and outlines required hardware and software resources.
+    \item \textbf{Chapter 4 (Software Requirement Specification):} Specifies functional and non-functional requirements, database schemas, system interfaces, and justifies the adoption of the Agile SDLC model.
+    \item \textbf{Chapter 5 (System Design):} Presents the complete architectural design, hardware block diagrams, circuit schematics, Data Flow Diagrams (Level 0 and Level 1), Entity-Relationship diagrams, and UML diagrams (Use Case, Activity, State, Sequence, Class, and Object).
+    \item \textbf{Chapter 6 (Implementation and Technical Specifications):} Details the practical implementation of the hardware assembly, ESP32 firmware algorithms, backend REST controllers, Google OAuth, Socket.IO channels, ML feature extraction, and React dashboard components.
+    \item \textbf{Chapter 7 (Testing and Results):} Documents unit, integration, and security test cases (including the 101 Vitest backend test suite), presents experimental hardware waveforms, evaluates ML classification performance, and analyzes empirical results.
+    \item \textbf{Chapter 8 (Other Specifications):} Explores advantages, physical limitations, practical applications, future enhancements, sustainability impacts, and cost considerations.
+    \item \textbf{Chapter 9 (Project Plan):} Outlines the semester-wise implementation plan, Work Breakdown Structure, Gantt chart, completed milestones, and pending work for Semester 2.
+    \item \textbf{Conclusions and References:} Synthesizes the project findings and provides IEEE-formatted references and technical appendices.
+\end{itemize}

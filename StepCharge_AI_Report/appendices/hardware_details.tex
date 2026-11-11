@@ -1,0 +1,50 @@
+\chapter{Hardware Specifications and Pinout Mapping}
+\label{app:hardware_details}
+
+\section{ESP32 GPIO Pinout Configuration}
+Table~\ref{tab:esp32_pinout} documents the exact hardware pin assignments utilized on the Espressif ESP32-WROOM-32D microcontroller for analog acquisition, load control, and communication.
+
+\begin{table}[H]
+\centering
+\small
+\renewcommand{\arraystretch}{1.2}
+\caption{ESP32 hardware GPIO pin assignment and peripheral configuration.}
+\label{tab:esp32_pinout}
+\begin{tabular}{|l|c|l|l|}
+\hline
+\textbf{Signal Function} & \textbf{ESP32 Pin} & \textbf{Peripheral / Channel} & \textbf{Circuit Connection} \\
+\hline
+Piezo Pulse Voltage & GPIO 34 & ADC1\_CH6 (Input-only) & Output of 2:1 Harvest Voltage Divider \\
+\hline
+Storage Buffer Voltage & GPIO 35 & ADC1\_CH7 (Input-only) & Output of 2:1 Storage Voltage Divider \\
+\hline
+LED Demo Load Gate & GPIO 25 & Digital Output / RTC\_IO6 & Gate of IRLZ44N MOSFET 1 (LED) \\
+\hline
+DC Fan Demo Load Gate & GPIO 26 & Digital Output / RTC\_IO7 & Gate of IRLZ44N MOSFET 2 (Fan) \\
+\hline
+Onboard Status LED & GPIO 2 & Digital Output & Wi-Fi Link \& Telemetry Activity Indicator \\
+\hline
+VCC Power Input & 5V / VIN & Power Rail & Regulated 5\,V DC Power Supply \\
+\hline
+Ground Reference & GND & System Common Ground & Star Ground for Analog and Power Rails \\
+\hline
+\end{tabular}
+\end{table}
+
+\section{Transducer Matrix Electrical Properties}
+\begin{itemize}
+    \item \textbf{Piezoelectric Material:} Lead Zirconate Titanate (PZT-5).
+    \item \textbf{Element Dimensions:} 35\,mm outer diameter, 0.30\,mm brass plate thickness, 0.20\,mm ceramic thickness.
+    \item \textbf{Resonant Frequency:} $2.8\,\text{kHz} \pm 0.5\,\text{kHz}$.
+    \item \textbf{Static Capacitance ($C_p$):} $28\,\text{nF} \pm 30\%$ per disc at $1\,\text{kHz}$.
+    \item \textbf{Matrix Array Topography:} 8 discs organized as 4 parallel branches of 2 series-connected discs.
+    \item \textbf{Array Equivalent Capacitance ($C_{\text{eq}}$):} $28\,\text{nF} \times \frac{4}{2} = 56\,\text{nF}$.
+\end{itemize}
+
+\section{Power Conditioning Component Parameters}
+\begin{itemize}
+    \item \textbf{Rectifier Diodes:} 4$\times$ 1N5819 Schottky Barrier Diodes ($V_{\text{RRM}} = 40\,\text{V}$, $I_F = 1.0\,\text{A}$, $V_F = 0.35\,\text{V}$ at $0.1\,\text{A}$).
+    \item \textbf{Overvoltage Clamping:} 1N4733A Zener Diode ($V_Z = 5.1\,\text{V}$, $P_D = 1.0\,\text{W}$).
+    \item \textbf{Energy Storage Buffer:} 0.1\,F, 5.5\,V Coin-Type Electric Double-Layer Capacitor ($\text{ESR} \le 30\,\Omega$ at $1\,\text{kHz}$).
+    \item \textbf{Voltage Dividers:} $100\,\text{k}\Omega \pm 1\%$ Metal-Film Resistors ($R_1, R_2, R_3, R_4$). Input impedance to ground: $200\,\text{k}\Omega$.
+\end{itemize}

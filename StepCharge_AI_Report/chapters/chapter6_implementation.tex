@@ -1,0 +1,158 @@
+\chapter{Implementation and Technical Specifications}
+
+\section{Introduction}
+The implementation of StepCharge AI translates the theoretical design into a verified, operational cyber-physical system. This chapter details the physical prototyping of the piezoelectric floor tile, embedded C++ firmware routines, cloud REST controllers in TypeScript, MongoDB Atlas schema integration, the Python machine learning inferencing microservice, and the React 19 web dashboard. Furthermore, the chapter documents the security architectures, hardware-software integration loops, and error-handling protocols established across the platform.
+
+\section{Hardware Implementation and Prototyping}
+The physical prototype was constructed using an iterative benchtop prototyping methodology. The mechanical structure consists of a sandwich enclosure:
+\begin{enumerate}
+    \item \textbf{Base Substrate:} A 12\,mm high-density plywood baseplate providing structural rigidity and dampening acoustic reflections from the floor.
+    \item \textbf{Transducer Matrix Layer:} Eight 35\,mm Lead Zirconate Titanate (PZT-5) piezoelectric diaphragm discs arranged in a $2 \times 4$ rectangular grid. Each disc is seated on high-resilience silicone O-rings to permit controlled flexural deformation without edge pinning.
+    \item \textbf{Impact Transmission Plate:} A 6\,mm transparent polymethyl methacrylate (acrylic) surface plate that distributes the pedestrian's vertical heel-strike load uniformly across the underlying transducers.
+    \item \textbf{Perimeter Shock Absorbers:} Neoprene elastomeric foam perimeter gaskets that absorb lateral shear forces and restore the acrylic plate to its neutral equilibrium state following impact release.
+\end{enumerate}
+
+\section{Piezoelectric Sensor Integration}
+The eight piezoelectric discs are electrically interconnected in a series-parallel configuration. Pairing two discs in series doubles the open-circuit output voltage, while connecting four parallel branches quadruples the aggregate output current. The combined positive and negative terminals are shielded with braided copper sleeving to minimize 50\,Hz electromagnetic interference (EMI) pick-up before routing into the signal conditioning circuit.
+
+\section{Rectification, Conditioning and Supercapacitor Storage}
+The conditioning circuit is assembled on a dedicated prototyping printed circuit board (PCB):
+\begin{itemize}
+    \item \textbf{Rectification:} A full-wave bridge rectifier constructed with four 1N5819 Schottky barrier diodes. The low forward-voltage drop ($V_F \approx 0.35\,\text{V}$) ensures that low-energy footfalls are efficiently rectified.
+    \item \textbf{Voltage Clamping:} A 5.1\,V Zener diode (1N4733A) is connected across the rectified DC rail in reverse breakdown configuration, safely clamping voltage spikes exceeding 5.1\,V to protect the supercapacitor and the ESP32.
+    \item \textbf{Energy Storage Reservoir:} An electric double-layer supercapacitor rated at 0.1\,F and 5.5\,V is positioned downstream of the rectifier.
+    \item \textbf{Sensing Dividers:} Two separate precision resistive dividers ($100\,\text{k}\Omega / 100\,\text{k}\Omega$, metal-film, 1\% tolerance) scale the rectified pulse rail and the supercapacitor terminal voltage by a factor of 2.0.
+\end{itemize}
+
+\section{ESP32 Firmware Implementation}
+The edge firmware is implemented in C++ using the Arduino-ESP32 core (v2.0.14+). The firmware leverages the ESP32 dual-core Xtensa architecture:
+\begin{itemize}
+    \item \textbf{Core 0 (Networking Task):} Runs the underlying FreeRTOS TCP/IP stack, Wi-Fi reconnection state machine, and periodic HTTPS REST client requests.
+    \item \textbf{Core 1 (Real-Time Sensing Task):} Dedicated to time-critical analog signal sampling, digital filtering, Schmitt-trigger hysteresis tracking, and closed-loop GPIO load control.
+\end{itemize}
+
+\section{Sensor Data Acquisition and Calibration}
+Analog sampling executes at a deterministic 50\,Hz interval ($20\,\text{ms}$) via high-resolution hardware timers. The sampling pipeline incorporates:
+\begin{enumerate}
+    \item \textbf{16$\times$ Hardware Oversampling:} Sixteen consecutive analog reads are performed in rapid succession on ADC1\_CH6 (GPIO 34) and ADC1\_CH7 (GPIO 35) and averaged to eliminate random Gaussian quantization noise.
+    \item \textbf{Exponential Moving Average (EMA) Smoothing:} The averaged reading is smoothed using the recurrence relation:
+    \begin{equation}
+    V_{\text{ema}}[k] = V_{\text{ema}}[k-1] + \frac{V_{\text{raw}}[k] - V_{\text{ema}}[k-1]}{4}
+    \end{equation}
+    which implements a low-pass digital filter with $\alpha = 0.25$, attenuating high-frequency electrical switching spikes.
+    \item \textbf{Calibrated Voltage Conversion:} Calibrated reference coefficients scale raw integer values ($0\text{--}4095$) into physical voltages ($V_{\text{phys}} = \frac{D}{4095.0} \times 3.30\,\text{V} \times 2.0$).
+\end{enumerate}
+
+\section{Wi-Fi Communication and Secure REST Telemetry}
+The ESP32 connects to an encrypted 2.4\,GHz WPA2 Wi-Fi network. Every 1000\,ms, the firmware constructs a structured JSON telemetry frame and dispatches it via an HTTPS POST request:
+\begin{lstlisting}[language=C++, caption={JSON telemetry serialization in ESP32 firmware.}, label={lst:firmware_json}]
+JsonDocument doc;
+doc["storageVoltage"] = lastStorage;
+doc["harvestVoltage"] = lastPeak;
+doc["storedEnergyJoules"] = 0.5 * 0.10 * lastStorage * lastStorage;
+doc["footstepCount"]  = footstepCount;
+doc["uptimeSec"]      = millis() / 1000;
+
+String jsonPayload;
+serializeJson(doc, jsonPayload);
+
+http.begin(client, SERVER_TELEMETRY_URL);
+http.addHeader("Content-Type", "application/json");
+http.addHeader("X-Device-Key", DEVICE_SECRET_KEY);
+int httpResponseCode = http.POST(jsonPayload);
+\end{lstlisting}
+
+\section{Backend API Implementation}
+The backend service is engineered in Node.js, Express, and TypeScript. The application architecture enforces modular separation of concerns:
+\begin{itemize}
+    \item \texttt{/backend/src/controllers/deviceController.ts}: Ingests incoming telemetry, validates physical voltage bounds ($0.0\,\text{V} \le V \le 60.0\,\text{V}$), ensures $V_{\text{avg}} \le V_{\text{peak}}$, and commits records to MongoDB Atlas.
+    \item \texttt{/backend/src/controllers/authController.ts}: Manages Google OAuth 2.0 authorization, credential verification, and user session lifecycle.
+    \item \texttt{/backend/src/controllers/alertController.ts}: Generates real-time anomaly alerts and manages the ``Mark as Read'' operational flow with complete database persistence.
+\end{itemize}
+
+\section{Google Authentication and Role-Based Access Control}
+User authentication utilizes Google OAuth 2.0 as the primary identity provider, supplemented by local cryptographic email/password authentication:
+\begin{enumerate}
+    \item The client initiates authentication via \texttt{GET /api/auth/google/url}, receiving an authorization URL containing a cryptographically random, signed CSRF state token stored in a temporary HttpOnly cookie.
+    \item Google redirects back to \texttt{/api/auth/google/callback} with an authorization code.
+    \item The backend exchanges the code for Google user identity tokens, retrieves or creates the user in MongoDB Atlas, and generates a signed JSON Web Token (JWT) with a 7-day expiration.
+    \item The JWT is set into an \texttt{HttpOnly}, \texttt{SameSite=Lax}, \texttt{Secure} (in production) cookie named \texttt{stepcharge\_session}.
+    \item The \texttt{requireAuth} middleware extracts and verifies the cookie on protected endpoints, attaching \texttt{req.user} and enforcing RBAC permissions (\texttt{USER} vs \texttt{ADMIN}).
+\end{enumerate}
+
+\section{MongoDB Atlas Integration and Time-Series Optimization}
+The MongoDB Atlas database utilizes Mongoose schemas with strict data typing and lifecycle hooks. To ensure sub-millisecond query performance during high-frequency telemetry ingestion, compound indexes are defined:
+\begin{lstlisting}[language=Java, caption={Mongoose compound indexing on time-series telemetry.}, label={lst:mongo_index}]
+const telemetrySchema = new Schema({
+  deviceId: { type: String, required: true, index: true },
+  timestamp: { type: Date, required: true, default: Date.now },
+  storageVoltage: { type: Number, required: true, min: 0, max: 60 },
+  harvestVoltage: { type: Number, required: true, min: 0, max: 60 },
+  storedEnergyJoules: { type: Number, required: true },
+  linkStats: { rssi: Number, ip: String }
+});
+
+telemetrySchema.index({ deviceId: 1, timestamp: -1 });
+\end{lstlisting}
+
+\section{Real-Time Communication Using Socket.IO}
+Real-time telemetry and event notifications are distributed via Socket.IO v4.7. Clients connect to the server and join device-specific room channels (e.g., \texttt{device:ESP32-01}). When the REST API ingests a valid telemetry frame or footstep impact, it immediately dispatches the event to the designated room:
+\begin{lstlisting}[language=Java, caption={Socket.IO device-scoped event emission.}, label={lst:socket_emit}]
+io.to(`device:${deviceId}`).emit('telemetry:update', {
+  deviceId,
+  storageVoltage,
+  harvestVoltage,
+  storedEnergyJoules,
+  timestamp: new Date()
+});
+\end{lstlisting}
+
+\section{Machine Learning Implementation}
+The machine learning pipeline is implemented in Python 3.11 using Scikit-Learn v1.4 and served via FastAPI. The classifier is an ensemble Random Forest (\texttt{RandomForestClassifier}) configured with 100 decision trees, balanced class weighting, and a maximum tree depth of 12 to prevent overfitting.
+
+\section{Data Preprocessing and Feature Extraction}
+When a footstep occurs, the system extracts a 5-dimensional physical feature vector:
+\begin{enumerate}
+    \item \textbf{Peak Voltage ($V_{\text{peak}}$):} Maximum voltage attained during the pulse transient.
+    \item \textbf{Average Voltage ($V_{\text{avg}}$):} Arithmetic mean voltage integrated over the pulse duration.
+    \item \textbf{Pulse Duration ($T_{\text{pulse}}$):} Temporal width of the pulse in milliseconds from rising trigger to falling release.
+    \item \textbf{Cadence Interval ($\Delta T_{\text{step}}$):} Elapsed time in seconds since the conclusion of the preceding footstep.
+    \item \textbf{Storage Voltage ($V_{\text{storage}}$):} Real-time voltage on the supercapacitor rail at the moment of impact.
+\end{enumerate}
+
+Physical plausibility bounds are strictly enforced. Samples with $V_{\text{peak}} > 60\,\text{V}$, $V_{\text{avg}} > V_{\text{peak}}$, or $T_{\text{pulse}} < 1.0\,\text{ms}$ are flagged as sensor faults and rejected.
+
+\section{Footstep Classification and Subject-Independent Validation}
+To eliminate gait identity memorization, model training enforces \texttt{StratifiedGroupKFold} cross-validation ($k = 5$), grouping samples by participant identifier (\texttt{participantId}). This guarantees that all footsteps from any given participant are isolated strictly within either the training partition or the testing partition, preventing identity leakage.
+
+\section{React Dashboard Implementation}
+The client dashboard is developed using React 19, TypeScript, and Tailwind CSS. The application architecture features:
+\begin{itemize}
+    \item \textbf{Live Telemetry Dials:} High-contrast SVG circular gauges rendering storage voltage ($0.0\text{--}5.0\,\text{V}$) and estimated capacitor energy ($0.0\text{--}1.25\,\text{J}$).
+    \item \textbf{Time-Series Waveform Charts:} Responsive Recharts components rendering historical voltage transients and moving averages.
+    \item \textbf{AI Insights Feed:} Live notification badges displaying the latest classified footstep (\texttt{LIGHT}, \texttt{NORMAL}, \texttt{HEAVY}) alongside confidence percentages and inference latency.
+    \item \textbf{Closed-Loop Load Controls:} Interactive toggles for the LED indicator and 5\,V fan that visually reflect an active state only upon confirmed GPIO hardware readback (\texttt{actualState == true}).
+    \item \textbf{Accessible Profile Menu:} A dark glass floating panel featuring user identity, email, RBAC role, outside-click detection, and Escape key dismissal.
+\end{itemize}
+
+\section{Integration of Hardware and Software}
+Hardware and software tiers operate in a closed feedback loop:
+\begin{enumerate}
+    \item Mechanical footstep impact $\rightarrow$ Piezoelectric charge generated.
+    \item Schottky rectification $\rightarrow$ Supercapacitor accumulates charge.
+    \item ESP32 Core 1 detects step $\rightarrow$ Caches peak, average, and duration.
+    \item ESP32 Core 0 transmits HTTPS POST $\rightarrow$ Node.js backend validates payload.
+    \item Backend calls Python ML microservice $\rightarrow$ Predicts gait class.
+    \item Backend commits records to MongoDB Atlas $\rightarrow$ Emits Socket.IO event.
+    \item React dashboard updates dials and charts in real time ($<100\,\text{ms}$).
+    \item User toggles load on UI $\rightarrow$ ESP32 switches MOSFET $\rightarrow$ Reports verified pin state $\rightarrow$ UI confirms load active.
+\end{enumerate}
+
+\section{Security and Error Handling}
+The system enforces defense-in-depth security:
+\begin{itemize}
+    \item \textbf{Fail-Closed Device Authentication:} Unknown device IDs or invalid SHA-256 keys return HTTP 403 Forbidden.
+    \item \textbf{Rate Limiting:} Telemetry endpoints are throttled to 120 requests/minute per IP; authentication endpoints are throttled to 10 requests/15 minutes.
+    \item \textbf{Graceful Degradation:} If the ML microservice is unreachable, the backend tags footsteps with \texttt{stepClass: null} and records an internal warning, preserving uninterrupted telemetry logging.
+    \item \textbf{Audit Logging:} Security events, administrator operations, and load toggles are immutably logged in the \texttt{audit\_logs} collection.
+\end{itemize}

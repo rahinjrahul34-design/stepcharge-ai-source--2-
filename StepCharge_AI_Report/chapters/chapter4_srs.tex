@@ -1,0 +1,235 @@
+\chapter{Software Requirement Specification}
+
+\section{Introduction}
+
+\subsection{Purpose and Scope of the Document}
+This Software Requirement Specification (SRS) document details the complete functional and non-functional requirements for the \textbf{StepCharge AI: Smart Footstep Energy Harvesting and Monitoring System}. Formulated in accordance with the IEEE 830-1998 standard for Software Requirements Specifications, this document defines the operational capabilities, external interfaces, performance targets, database architectures, and design constraints of the system. The scope encompasses the embedded ESP32 C++ firmware, the Node.js + Express + TypeScript REST API backend, the MongoDB Atlas time-series document store, the Python FastAPI machine learning inferencing microservice, and the React 19 + TypeScript client dashboard. It serves as an authoritative technical reference for developers, system architects, and academic evaluators.
+
+\subsection{Overview of Developer Responsibilities}
+The multidisciplinary nature of the StepCharge AI platform establishes clear developer responsibilities across four primary engineering domains:
+\begin{enumerate}
+    \item \textbf{Embedded Systems Developers:} Responsible for writing, testing, and calibrating the ESP32 C++ firmware; configuring 12-bit ADC peripheral sampling with hardware oversampling; implementing Exponential Moving Average (EMA) smoothing; executing dual-threshold Schmitt trigger step detection; maintaining refractory lockout timing; managing non-blocking HTTPS client connections; and reading back physical GPIO pin states for closed-loop load confirmation.
+    \item \textbf{Backend and Cloud Engineers:} Responsible for architecting the asynchronous Node.js REST API; implementing SHA-256 cryptographic device key authentication; configuring Google OAuth 2.0 sessions with secure HTTP-only cookies; enforcing Role-Based Access Control (RBAC); architecting Socket.IO room broadcasting; and designing indexed MongoDB Atlas collections.
+    \item \textbf{Machine Learning Engineers:} Responsible for data curation; designing feature extraction pipelines from kinetic transients; training Random Forest classifiers using subject-independent Stratified Group $K$-Fold cross-validation; packaging the model into a high-throughput Python FastAPI microservice; and tracking model metadata.
+    \item \textbf{Frontend and UI/UX Engineers:} Responsible for engineering the responsive React 19 dashboard using Tailwind CSS and Recharts; establishing WebSocket state management via Context providers; rendering live telemetry dials and historical trends; implementing keyboard-accessible profile menus; and presenting confirmed hardware load statuses.
+\end{enumerate}
+
+\section{Functional Requirements}
+
+\subsection{Footstep Detection and Hysteresis Thresholding (FR-1)}
+\begin{itemize}
+    \item \textbf{Description:} The edge firmware must continuously detect human footstep impacts from the rectified piezoelectric signal while suppressing electrical noise and mechanical bounce.
+    \item \textbf{Input:} Continuous 50\,Hz analog voltage readings from GPIO 34 through a 2:1 resistive divider.
+    \item \textbf{Processing:} The system accumulates 16 hardware samples per read, computes an Exponential Moving Average ($\alpha = 0.25$), and evaluates a dual-threshold Schmitt trigger. A footstep pulse initiates when the voltage exceeds $V_{\text{high}} = 0.80\,\text{V}$ and concludes when the voltage drops below $V_{\text{low}} = 0.55\,\text{V}$. Pulses outside the duration range of $60\,\text{ms} \le T_{\text{pulse}} \le 2000\,\text{ms}$ are rejected. A refractory lockout of 250\,ms is enforced after pulse completion.
+    \item \textbf{Output:} Discrete footstep event records containing timestamp, peak voltage, average voltage, pulse duration, and cumulative step count.
+\end{itemize}
+
+\subsection{Dual-Channel Voltage Measurement and Digital Filtering (FR-2)}
+\begin{itemize}
+    \item \textbf{Description:} The edge microcontroller must sample both the instantaneous harvesting pulse rail and the supercapacitor storage buffer rail without channel crosstalk or Wi-Fi radio interference.
+    \item \textbf{Input:} Analog voltages on ESP32 ADC1 channels GPIO 34 (Harvest rail) and GPIO 35 (Storage rail).
+    \item \textbf{Processing:} Raw 12-bit ADC values ($0\text{--}4095$) are converted to physical voltages using calibrated reference parameters ($V_{\text{ref}} = 3.30\,\text{V}$, divider ratio $M = 2.0$). Moving average smoothing attenuates high-frequency RF noise.
+    \item \textbf{Output:} Calibrated floating-point voltages for both rails, refreshed at 1-second telemetry intervals.
+\end{itemize}
+
+\subsection{Energy Storage Monitoring and Safety Thresholds (FR-3)}
+\begin{itemize}
+    \item \textbf{Description:} The system must compute the electrostatic energy stored in the 0.1\,F supercapacitor and enforce safety threshold alerts.
+    \item \textbf{Input:} Real-time storage rail voltage ($V_{\text{storage}}$).
+    \item \textbf{Processing:} Calculates stored energy in Joules using $E = \frac{1}{2} C V_{\text{storage}}^2$, where $C = 0.10\,\text{F}$. Compares $V_{\text{storage}}$ against hard limits: normal ($2.0\,\text{V} \le V \le 4.7\,\text{V}$), warning ($V > 4.7\,\text{V}$), and critical ceiling ($V \ge 5.0\,\text{V}$).
+    \item \textbf{Output:} Stored energy estimate ($E$), voltage status category, and overvoltage warning notifications.
+\end{itemize}
+
+\subsection{Real-Time Machine Learning Inference and Classification (FR-4)}
+\begin{itemize}
+    \item \textbf{Description:} The system must classify each valid footstep impact into one of three intensity categories: \texttt{LIGHT}, \texttt{NORMAL}, or \texttt{HEAVY}.
+    \item \textbf{Input:} Kinetic feature vector: $[V_{\text{peak}}, V_{\text{avg}}, T_{\text{pulse}}, \Delta T_{\text{step}}, V_{\text{storage}}]$.
+    \item \textbf{Processing:} Dispatched to the Python FastAPI microservice, which executes inference via a pre-trained Random Forest model and outputs class probabilities.
+    \item \textbf{Output:} Predicted class label and prediction confidence score ($0.0\text{--}1.0$). If the ML microservice is unreachable, the system gracefully records \texttt{null} for prediction without failing telemetry persistence.
+\end{itemize}
+
+\subsection{ESP32 Telemetry Transmission and Reconnection Buffer (FR-5)}
+\begin{itemize}
+    \item \textbf{Description:} Edge devices must package telemetry and transmit it over HTTPS to the backend REST API every 1000\,ms.
+    \item \textbf{Input:} Latest telemetry state and pending footstep event queues.
+    \item \textbf{Processing:} Serializes payloads into JSON format, attaches the pre-shared device authentication key via the \texttt{X-Device-Key} header, and executes an HTTPS POST request. If transmission fails, footstep events are retained in a circular buffer in SRAM and resent upon reconnection.
+    \item \textbf{Output:} HTTP 200 OK response from the backend; updated device uptime and link quality.
+\end{itemize}
+
+\subsection{User Authentication and Role-Based Access Control (FR-6)}
+\begin{itemize}
+    \item \textbf{Description:} Secure authentication for web dashboard users, supporting Google OAuth 2.0 and local credentials with RBAC enforcement.
+    \item \textbf{Input:} Google OAuth authorization code or email/password credentials.
+    \item \textbf{Processing:} Verifies credentials, retrieves or provisions the user in MongoDB Atlas, issues a signed JWT token containing user identity and role (\texttt{USER} or \texttt{ADMIN}), and sets an HTTP-only, secure, SameSite session cookie.
+    \item \textbf{Output:} Authenticated session profile and authorization headers for protected routes.
+\end{itemize}
+
+\subsection{Real-Time Dashboard Observability (FR-7)}
+\begin{itemize}
+    \item \textbf{Description:} Web clients must display live hardware telemetry and AI predictions without requiring manual browser refreshing.
+    \item \textbf{Input:} Socket.IO WebSocket event stream on room \texttt{device:<deviceId>}.
+    \item \textbf{Processing:} React context store consumes incoming \texttt{telemetry:update} and \texttt{footstep:detected} events and updates graphical widgets.
+    \item \textbf{Output:} Dynamic animated dials (instantaneous voltage, supercapacitor level), real-time footstep pulse stream, and recent AI classification badges.
+\end{itemize}
+
+\subsection{Historical Telemetry Logging and Export (FR-8)}
+\begin{itemize}
+    \item \textbf{Description:} Users must be able to query, filter, and export historical energy harvesting and footstep records.
+    \item \textbf{Input:} Query parameters (date range, device identifier, step class).
+    \item \textbf{Processing:} Backend executes indexed queries on MongoDB Atlas, aggregates temporal metrics, and formats data into JSON or downloadable CSV files.
+    \item \textbf{Output:} Tabular data views and downloadable CSV datasets for research analysis.
+\end{itemize}
+
+\subsection{Closed-Loop Load Actuation and Feedback Verification (FR-9)}
+\begin{itemize}
+    \item \textbf{Description:} Authorized users can actuate demonstration loads (LED indicator, 5\,V DC fan), with the UI visually reflecting state changes only upon verified physical GPIO readback.
+    \item \textbf{Input:} User toggle action on dashboard; load key (\texttt{led} or \texttt{fan}) and requested state (\texttt{true}/\texttt{false}).
+    \item \textbf{Processing:} Backend persists command intent. The ESP32 polls the command state, switches the corresponding MOSFET gate, reads the digital logic level directly back from the pin, and reports \texttt{actualState} to the backend.
+    \item \textbf{Output:} The dashboard renders the load as active only when \texttt{actualState == true}, eliminating open-loop actuation discrepancies.
+\end{itemize}
+
+\subsection{Automated System Health and Anomaly Alerts (FR-10)}
+\begin{itemize}
+    \item \textbf{Description:} The backend must monitor device health, detect anomalous sensor readings, and generate actionable alerts.
+    \item \textbf{Input:} Ingested telemetry streams and periodic health watchdog checks.
+    \item \textbf{Processing:} Identifies sensor flat-lining ($V < 0.02\,\text{V}$ for $>5\,\text{minutes}$ under expected traffic), storage overvoltage ($V > 4.70\,\text{V}$), or device offline status ($>30\,\text{seconds}$ without telemetry). Persists alerts in MongoDB and emits \texttt{alert:created} via Socket.IO.
+    \item \textbf{Output:} Real-time alert notifications on the dashboard with ``Mark as Read'' acknowledgment capabilities.
+\end{itemize}
+
+\section{Non-Functional Requirements}
+
+\subsection{Performance Requirements}
+\begin{itemize}
+    \item \textbf{Edge Sampling Rate:} The ESP32 analog sampling loop must execute at a deterministic frequency of 50\,Hz ($20\,\text{ms} \pm 1\,\text{ms}$ interval).
+    \item \textbf{Telemetry Latency:} Edge-to-cloud telemetry transmission must complete within 500\,ms under standard Wi-Fi conditions.
+    \item \textbf{Real-Time Push Latency:} The Socket.IO server must broadcast incoming telemetry frames to connected browser clients within 100\,ms of ingestion.
+    \item \textbf{ML Inference Throughput:} The Python FastAPI microservice must process single-sample inference requests within 25\,ms.
+    \item \textbf{UI Responsiveness:} The dashboard must maintain 60\,frames per second (FPS) rendering on modern browsers during live high-frequency data streaming.
+\end{itemize}
+
+\subsection{Reliability and Fault Tolerance}
+\begin{itemize}
+    \item \textbf{Graceful Degradation:} If the Python ML microservice becomes unavailable, the backend must continue processing and persisting telemetry, recording footsteps with \texttt{null} classifications without throwing fatal 500 errors.
+    \item \textbf{Offline Edge Buffering:} If Wi-Fi connectivity drops, the ESP32 must continue step counting and buffer up to 100 recent footstep events in SRAM, flushing them upon link restoration.
+    \item \textbf{Watchdog Protection:} The ESP32 firmware must utilize a hardware watchdog timer (8-second timeout) to automatically reboot in the event of an unrecoverable freeze.
+\end{itemize}
+
+\subsection{Security Requirements}
+\begin{itemize}
+    \item \textbf{Cryptographic Transport:} All communication between edge devices, backend servers, and client browsers must be strictly encrypted via TLS 1.3 / HTTPS and WSS (secure WebSockets).
+    \item \textbf{Device Key Hashing:} Edge device authentication keys are never stored in plaintext. The backend hashes incoming \texttt{X-Device-Key} values using SHA-256 before performing constant-time comparisons against database records.
+    \item \textbf{Session Cookie Protection:} User authentication cookies must be set with \texttt{HttpOnly}, \texttt{Secure} (in production), and \texttt{SameSite=Lax} (or \texttt{None} for cross-origin HTTPS) attributes to mitigate Cross-Site Scripting (XSS) and Cross-Site Request Forgery (CSRF).
+    \item \textbf{Rate Limiting:} Public and sensitive endpoints must be protected against brute-force attacks via Express rate limiters (120 requests/minute for telemetry; 10 requests/15 minutes for authentication).
+    \item \textbf{Audit Logging:} Administrative operations, user logins, load actuation requests, and device reconfigurations must be immutably recorded in an \texttt{audit\_logs} collection.
+\end{itemize}
+
+\subsection{Availability}
+The cloud backend services and MongoDB Atlas database must be architected for high availability, targeting a minimum operational uptime of 99.5\% during continuous experimental observation periods.
+
+\subsection{Scalability}
+The database schema must utilize compound indexes on \texttt{\{ deviceId: 1, timestamp: -1 \}} to ensure that query execution time remains $O(\log N)$ as the telemetry collection scales to millions of documents. Socket.IO communication must be structured into device-specific room channels, preventing broadcast storms.
+
+\subsection{Usability}
+The client dashboard must adhere to modern accessibility and responsive design standards (WCAG 2.1 Level AA compliance), featuring high-contrast dark theme surfaces, legible typography, keyboard-navigable menus (Escape key, outside click detection), and intuitive visual feedback states (default, hover, active, loading, error).
+
+\subsection{Maintainability}
+The codebase must enforce strict modular decoupling: TypeScript interfaces across backend controllers, PEP-8 compliance in Python microservices, and reusable component hierarchies in React, supported by automated linting (oxlint/eslint) and Vitest test suites.
+
+\section{Hardware Requirements}
+The hardware requirements for deploying the complete StepCharge AI system are summarized as follows:
+\begin{itemize}
+    \item \textbf{Harvester Module:} 8$\times$ 35\,mm PZT-5 piezoelectric ceramic diaphragm discs wired in a series-parallel array, integrated into a load-distributing mechanical flooring tile.
+    \item \textbf{Power Conditioning Circuit:} 4$\times$ 1N5819 Schottky diodes, 5.1\,V Zener overvoltage clamp, 0.1\,F / 5.5\,V supercapacitor, and dual 2:1 precision resistive dividers ($100\,\text{k}\Omega / 100\,\text{k}\Omega$, 1\% tolerance).
+    \item \textbf{Processing Board:} Espressif ESP32-WROOM-32D development board powered via 5\,V micro-USB.
+    \item \textbf{Actuation Circuit:} 2$\times$ IRLZ44N N-channel logic-level MOSFETs driving a 5\,mm green LED and a 5\,V miniature DC brushless demonstration fan.
+    \item \textbf{Networking Infrastructure:} 2.4\,GHz Wi-Fi access point supporting IEEE 802.11 b/g/n with WPA2-PSK security.
+\end{itemize}
+
+\section{Software Requirements}
+The operational software environments include:
+\begin{itemize}
+    \item \textbf{Operating System:} Cross-platform compatibility; developed and tested on Windows 11 64-bit and Ubuntu 22.04 LTS.
+    \item \textbf{Runtimes and Compilers:} Node.js v20.x LTS, Python v3.11+, and GNU C++ (Xtensa toolchain via ESP-IDF / Arduino core).
+    \item \textbf{Cloud Services:} MongoDB Atlas Serverless/M2 Cluster running MongoDB 7.0+.
+    \item \textbf{Client Browsers:} Modern Chromium-based browsers (Google Chrome 120+, Microsoft Edge) or Mozilla Firefox 120+ with WebSocket support.
+\end{itemize}
+
+\section{Database Requirements}
+The database layer requires a flexible, high-performance document store capable of ingesting high-frequency time-series data while managing relational associations between users and devices:
+\begin{itemize}
+    \item \textbf{Database Engine:} MongoDB Atlas 7.0+.
+    \item \textbf{Object Data Modeling (ODM):} Mongoose ODM v8.x for schema validation, type safety, and lifecycle middleware.
+    \item \textbf{Primary Collections:}
+    \begin{enumerate}
+        \item \texttt{users}: Manages user credentials, Google OAuth profile identifiers, roles (\texttt{USER}, \texttt{ADMIN}), and session timestamps.
+        \item \texttt{devices}: Stores edge device identities, hashed API keys (\texttt{apiKeyHash}), ownership mappings, load states, and online statuses.
+        \item \texttt{telemetry}: High-frequency time-series collection storing periodic rail voltages, stored energy, and link metrics.
+        \item \texttt{footsteps}: Event-driven collection storing discrete step records, physical features, AI classifications, and confidence scores.
+        \item \texttt{alerts}: Records system warnings, overvoltage thresholds, and sensor faults with read/unread statuses.
+        \item \texttt{dataset\_samples}: Curated ground-truth footstep feature vectors labeled for model retraining.
+        \item \texttt{model\_metadata}: Registry of trained machine learning model artifacts, hyperparameters, and evaluation metrics.
+        \item \texttt{audit\_logs}: Tamper-evident operational audit trail recording security events and load toggles.
+    \end{enumerate}
+    \item \textbf{Indexing Strategy:} Compound indexes on \texttt{\{ deviceId: 1, timestamp: -1 \}} across \texttt{telemetry} and \texttt{footsteps} to optimize range queries and chronological charting.
+\end{itemize}
+
+\section{System Constraints}
+The system implementation is constrained by the following architectural boundaries:
+\begin{enumerate}
+    \item \textbf{Direct Energy Measurement Boundary:} The system directly measures terminal voltages across calibrated resistive dividers. Stored energy is calculated via $E = \frac{1}{2} C V^2$. Current and instantaneous power are not measured and are explicitly omitted from telemetry contracts to preserve scientific integrity.
+    \item \textbf{ADC Attenuation Limit:} The ESP32 ADC1 is configured with 11\,dB attenuation, providing a measurable range of $0.0\text{--}3.1\,\text{V}$. The external $2:1$ divider scales external voltages up to $6.0\,\text{V}$ into the safe measurable window. Voltages exceeding $5.5\,\text{V}$ are clamped by the physical Zener diode.
+    \item \textbf{Single-Tile Physical Testing:} Preliminary prototype evaluation is conducted on a single instrumented tile module rather than an extensive multi-tile network.
+\end{enumerate}
+
+\section{Development Methodology: The Agile SDLC Model}
+
+\subsection{Justification of the Agile Methodology}
+The development of StepCharge AI adopted the Agile Software Development Life Cycle (SDLC) model. Developing an advanced cyber-physical system that bridges analog electromechanical harvesting, embedded C++ firmware, cloud web services, and machine learning involves high technical uncertainty and inter-component dependencies. Linear sequential models (such as the traditional Waterfall model) are ill-suited for this project because physical hardware discoveries (such as unexpected sensor noise, ADC non-linearities, or footwear damping) directly necessitate iterative firmware and backend adjustments.
+
+\begin{figure}[H]
+\centering
+\begin{tikzpicture}[
+    scale=0.9, every node/.style={scale=0.9},
+    stage/.style={rectangle, rounded corners=8pt, draw=black!80, thick, fill=blue!10, align=center, minimum width=2.8cm, minimum height=1.0cm, font=\bfseries\small},
+    arrow/.style={-{Latex[length=3mm]}, thick, draw=blue!80!black}
+]
+    % Circular layout of Agile Sprints
+    \node (plan) at (90:3.5cm) [stage, fill=red!15] {1. Planning \&\\Requirements};
+    \node (design) at (30:3.5cm) [stage, fill=orange!15] {2. Architecture\\\& Design};
+    \node (dev) at (330:3.5cm) [stage, fill=yellow!20] {3. Hardware \&\\Code Sprint};
+    \node (test) at (270:3.5cm) [stage, fill=green!15] {4. Integrated\\Testing};
+    \node (deploy) at (210:3.5cm) [stage, fill=cyan!15] {5. Cloud Deploy\\\& Calibration};
+    \node (review) at (150:3.5cm) [stage, fill=purple!15] {6. Review \&\\Sprint Retrospective};
+
+    % Circular connecting arrows
+    \draw [arrow] (plan) to [bend left=20] (design);
+    \draw [arrow] (design) to [bend left=20] (dev);
+    \draw [arrow] (dev) to [bend left=20] (test);
+    \draw [arrow] (test) to [bend left=20] (deploy);
+    \draw [arrow] (deploy) to [bend left=20] (review);
+    \draw [arrow] (review) to [bend left=20] (plan);
+
+    % Central label
+    \node at (0,0) [circle, draw=black!70, thick, fill=gray!10, align=center, inner sep=6pt, font=\bfseries] {AGILE\\SDLC\\Sprint Cycle};
+\end{tikzpicture}
+\caption{The iterative Agile Software Development Life Cycle (SDLC) model applied to StepCharge AI.}
+\label{fig:agile_model}
+\end{figure}
+
+The Agile approach provided three critical operational benefits:
+\begin{enumerate}
+    \item \textbf{Incremental Functional Deliverables:} Each sprint produced a verified subsystem milestone. Sprint 1 established the physical rectification and benchtop voltage logging; Sprint 2 established the ESP32 Schmitt trigger and local filtering; Sprint 3 delivered the Node.js API and MongoDB database; Sprint 4 integrated Socket.IO and the React dashboard; and Sprint 5 integrated the Python machine learning service.
+    \item \textbf{Rapid Experimental Feedback Loops:} Empirical observations from physical walking tests were incorporated into subsequent software iterations. For instance, initial tests revealed electrical noise spikes falsely incrementing step counts, prompting the introduction of the 60\,ms minimum pulse width filter and 250\,ms refractory lockout in the subsequent sprint.
+    \item \textbf{Continuous Test-Driven Integration:} Automated testing (Vitest backend suite, ML unit tests) was maintained continuously across sprints, ensuring that architectural enhancements (such as migrating authentication and hardening security) never introduced regressions into existing telemetry pipelines.
+\end{enumerate}
+
+\subsection{Implementation Phases in Agile}
+The development trajectory was structured into six distinct phases:
+\begin{itemize}
+    \item \textbf{Phase 1: Planning and Requirements Analysis:} Defining project scope, electromechanical calculations, IEEE SRS formulation, and establishing component specifications.
+    \item \textbf{Phase 2: Architectural and Circuit Design:} Schematic drafting, PCB/breadboard layout, database schema definition, and API endpoint specification.
+    \item \textbf{Phase 3: Development Sprints:} Parallel development of ESP32 C++ firmware, Node.js REST controllers, MongoDB Atlas integration, React frontend components, and Python ML pipelines.
+    \item \textbf{Phase 4: Integrated Testing and Calibration:} Benchtop sensor characterization, dual-rail divider calibration, security penetration audits, and 101 automated Vitest unit tests.
+    \item \textbf{Phase 5: Cloud Deployment and Real-Time Verification:} Deploying backend services, establishing Socket.IO namespaces, verifying Google OAuth sessions, and live hardware-in-the-loop stress testing.
+    \item \textbf{Phase 6: Sprint Review and Academic Evaluation:} Feature validation against SRS criteria, performance assessment, and preliminary project report synthesis.
+\end{itemize}

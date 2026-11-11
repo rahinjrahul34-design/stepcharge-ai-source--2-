@@ -1,0 +1,58 @@
+\chapter*{Annexure B: Activities Completed During Semester 1}
+\addcontentsline{toc}{chapter}{Annexure B: Activities Completed During Semester 1}
+
+\noindent
+During the First Semester of Academic Year 2026--27, the project team successfully executed the following preliminary engineering activities:
+
+\begin{enumerate}
+    \item \textbf{Literature Review and Research Paper Drafting:}
+    \begin{itemize}
+        \item Analyzed over 25 peer-reviewed IEEE, Springer, and Elsevier research papers focusing on piezoelectric kinetic energy harvesting, IoT architectures, and biomechanical gait classification.
+        \item Formulated a comparative study outlining existing technological bottlenecks, measurement errors, and research gaps.
+        \item Prepared a conference review manuscript entitled \textit{``A Survey on IoT-Enabled Piezoelectric Kinetic Energy Harvesting and Machine Learning Classification Platforms''}.
+    \end{itemize}
+
+    \item \textbf{Hardware Transducer Characterization and Assembly:}
+    \begin{itemize}
+        \item Acquired and bench-tested 35\,mm PZT-5 piezoelectric ceramic diaphragm transducers.
+        \item Designed and assembled a $2 \times 4$ series-parallel transducer array embedded within an elastomeric silicone damper enclosure beneath an acrylic impact plate.
+        \item Built and tested a low-loss Schottky bridge rectifier (1N5819), 5.1\,V Zener overvoltage clamp, and 0.1\,F / 5.5\,V supercapacitor storage circuit.
+    \end{itemize}
+
+    \item \textbf{Embedded Firmware Development:}
+    \begin{itemize}
+        \item Programmed the ESP32 microcontroller with 16$\times$ oversampling and Exponential Moving Average smoothing ($\alpha = 0.25$) on ADC1 channels (GPIO 34 and GPIO 35).
+        \item Implemented and calibrated a dual-threshold Schmitt trigger with hysteresis ($V_{\text{high}} = 0.80\,\text{V}$, $V_{\text{low}} = 0.55\,\text{V}$) and a 250\,ms refractory lockout window, achieving zero false double-triggering.
+        \item Formulated JSON telemetry serialization and secure HTTPS POST transmission.
+    \end{itemize}
+
+    \item \textbf{Cloud Backend and Database Pipeline:}
+    \begin{itemize}
+        \item Engineered a RESTful API in Node.js, Express, and TypeScript with SHA-256 device key authentication and Google OAuth 2.0 sessions with HttpOnly cookies.
+        \item Configured MongoDB Atlas cloud database with compound time-series indexes.
+        \item Implemented Socket.IO room namespaces for real-time telemetry streaming.
+        \item Formulated and executed 101 automated Vitest unit, security, and integration tests (100\% pass rate).
+    \end{itemize}
+
+    \item \textbf{Machine Learning and Web Dashboard:}
+    \begin{itemize}
+        \item Trained a Scikit-Learn Random Forest classifier on 5 time-domain kinetic features, validating generalizability via subject-independent Group $K$-Fold cross-validation (88.6\% accuracy).
+        \item Developed a responsive React 19 + TypeScript dashboard featuring live SVG gauges, time-series charts, AI classification feeds, and closed-loop GPIO load toggling.
+    \end{itemize}
+\end{enumerate}
+
+\vspace{0.3in}
+
+\begin{center}
+\begin{tikzpicture}
+    \draw [thick, dashed, fill=gray!5] (0,0) rectangle (14, 5);
+    \node at (7, 3.8) [font=\large\bfseries] {Project Presentation / Activity Photos \& Review Paper Placeholder};
+    \node at (7, 2.5) [font=\small, align=center, text width=11.5cm] {
+        Insert photographs of project presentations, project competition participation receipts, patent/copyright filing acknowledgements, or conference review paper acceptance receipts here.
+    };
+    \node at (7, 1.0) [font=\footnotesize, align=center] {
+        \textbf{Verified by Project Guide:} \guide \quad $\cdot$ \quad \textbf{Department of Information Technology}
+    };
+\end{tikzpicture}
+\end{center}
+\clearpage

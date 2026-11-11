@@ -1,0 +1,118 @@
+\chapter{Important Code Snippets}
+\label{app:code_snippets}
+
+\section{ESP32 Firmware Step Detection Loop}
+The following listing demonstrates the dual-threshold Schmitt trigger, oversampling, and refractory lockout timing implemented in \texttt{stepcharge\_esp32.ino}:
+
+\begin{lstlisting}[language=C++, caption={ESP32 Schmitt trigger step detection and filtering loop.}, label={lst:firmware_schmitt}]
+void sampleAndDetectSteps() {
+  uint32_t nowMs = millis();
+  if (nowMs - lastSampleMs < SAMPLE_INTERVAL_MS) return;
+  lastSampleMs = nowMs;
+
+  // 16x Hardware Oversampling
+  uint32_t rawSum = 0;
+  for (int i = 0; i < 16; i++) {
+    rawSum += analogRead(PIN_HARVEST);
+  }
+  float vRaw = (rawSum / 16.0f) * (ADC_REF_V / ADC_MAX) * DIVIDER_RATIO;
+
+  // Exponential Moving Average Smoothing
+  emaHarvest += (vRaw - emaHarvest) / (float)(1 << EMA_SHIFT);
+
+  // Dual-Threshold Schmitt Trigger
+  if (!inPulse) {
+    if (emaHarvest >= STEP_THRESHOLD_V && (nowMs - lastStepEndMs >= REFRACTORY_MS)) {
+      inPulse = true;
+      pulseStartMs = nowMs;
+      pulsePeak = emaHarvest;
+      pulseSum = emaHarvest;
+      pulseSamples = 1;
+    }
+  } else {
+    pulseSum += emaHarvest;
+    pulseSamples++;
+    if (emaHarvest > pulsePeak) pulsePeak = emaHarvest;
+
+    // Falling edge release
+    if (emaHarvest < STEP_RELEASE_V) {
+      inPulse = false;
+      uint16_t durationMs = nowMs - pulseStartMs;
+      lastStepEndMs = nowMs;
+
+      // Reject noise (<60ms) and standing weight (>2000ms)
+      if (durationMs >= MIN_PULSE_MS && durationMs <= MAX_PULSE_MS) {
+        footstepCount++;
+        lastPeak = pulsePeak;
+        lastAvg = pulseSum / (float)pulseSamples;
+        lastPulseMs = durationMs;
+        queueFootstepEvent(lastPeak, lastAvg, durationMs);
+      }
+    }
+  }
+}
+\end{lstlisting}
+
+\section{Node.js Device Telemetry Controller}
+The following TypeScript snippet from \texttt{backend/src/controllers/deviceController.ts} illustrates input validation, bounds checking, and Socket.IO emission:
+
+\begin{lstlisting}[language=Java, caption={Node.js telemetry validation and Socket.IO broadcast.}, label={lst:backend_controller}]
+export async function ingestTelemetry(req: Request, res: Response): Promise<void> {
+  const { deviceId } = req.params;
+  const { storageVoltage, harvestVoltage, footstepCount } = req.body;
+
+  // Enforce physical bounds
+  if (typeof storageVoltage !== 'number' || isNaN(storageVoltage) || storageVoltage < 0 || storageVoltage > 60) {
+    res.status(400).json({ success: false, error: { code: 'INVALID_VOLTAGE', message: 'Storage voltage out of physical bounds.' } });
+    return;
+  }
+
+  const storedEnergyJoules = 0.5 * 0.10 * Math.pow(storageVoltage, 2);
+
+  const telemetryRecord = await Telemetry.create({
+    deviceId,
+    storageVoltage,
+    harvestVoltage,
+    storedEnergyJoules,
+    footstepCount,
+    timestamp: new Date()
+  });
+
+  // Real-time broadcast to connected clients in device room
+  getSocketServer().to(`device:${deviceId}`).emit('telemetry:update', telemetryRecord);
+
+  res.status(200).json({ success: true, data: telemetryRecord });
+}
+\end{lstlisting}
+
+\section{Machine Learning Feature Extractor and Trainer}
+The following Python snippet from \texttt{ml-service/train\_model.py} implements subject-independent Group $K$-Fold validation using Scikit-Learn:
+
+\begin{lstlisting}[language=Python, caption={Python subject-independent cross-validation protocol.}, label={lst:ml_training}]
+def train_model(df: pd.DataFrame, n_splits: int = 5):
+    features = ["peakVoltage", "averageVoltage", "pulseDuration", "stepInterval", "storageVoltage"]
+    X = df[features].values
+    y = df["label"].values
+    groups = df["participantId"].values
+
+    # Subject-independent GroupKFold partitioning
+    gkf = StratifiedGroupKFold(n_splits=n_splits)
+    accuracies, f1_scores = [], []
+
+    for train_idx, test_idx in gkf.split(X, y, groups):
+        X_train, X_test = X[train_idx], X[test_idx]
+        y_train, y_test = y[train_idx], y[test_idx]
+
+        clf = RandomForestClassifier(n_estimators=100, max_depth=12, random_state=42)
+        clf.fit(X_train, y_train)
+        y_pred = clf.predict(X_test)
+
+        accuracies.append(accuracy_score(y_test, y_pred))
+        f1_scores.append(f1_score(y_test, y_pred, average="macro"))
+
+    return {
+        "accuracy": float(np.mean(accuracies)),
+        "f1_score": float(np.mean(f1_scores)),
+        "method": "subject-independent-stratified-group-kfold"
+    }
+\end{lstlisting}

@@ -1,0 +1,102 @@
+\chapter{Literature Survey}
+
+\section{Introduction}
+Kinetic energy harvesting from human locomotion and ambient mechanical vibrations has garnered extensive academic and industrial interest over the past two decades. The convergence of low-power embedded microcontrollers, wireless communication protocols, and machine learning has expanded the focus from purely electrical power extraction to intelligent cyber-physical systems. This chapter reviews foundational and contemporary research in piezoelectric transduction, power conditioning, Internet of Things (IoT) energy monitoring architectures, and machine-learning-based footstep classification. Furthermore, this survey provides a structured comparative analysis of existing systems, explicitly articulates prevailing research gaps, and establishes the academic rationale for the proposed StepCharge AI architecture.
+
+\section{Existing Footstep Energy Harvesting Systems}
+Early explorations into biomechanical energy harvesting emerged in the late 1990s and early 2000s, driven by the vision of autonomous wearable computing. Kymissis et al.~\cite{kymissis1998parasitic} conducted pioneering work on parasitic power harvesting in footwear at the MIT Media Laboratory. Their investigation evaluated three distinct transducer mechanisms: a flexible polyvinylidene fluoride (PVDF) piezoelectric foil stave in the insole, a rigid Lead Zirconate Titanate (PZT) unimorph transducer positioned in the heel, and a miniature rotary electromagnetic generator coupled to heel-strike mechanics. The PZT heel transducer generated up to $80\,\text{mJ}$ per step at open-circuit peak potentials approaching $60\,\text{V}$. However, the mechanical rigidity of PZT ceramics raised reliability concerns regarding fatigue fractures under repeated dynamic impacts, while the PVDF stave, although flexible and mechanically compliant, yielded significantly lower average power (approximately $1\,\text{mW}$).
+
+Building upon these findings, Paradiso and Starner~\cite{paradiso2005energy} synthesized energy scavenging techniques across mobile and pervasive computing environments. They categorized kinetic harvesting mechanisms into passive parasitic harvesters (which harness secondary energy dissipated during standard locomotion) and active user-driven devices. Their analysis revealed that while normal walking expends approximately $67\,\text{W}$ of biomechanical power in heel-strike decelerations, extracting even $1\%$ of this energy without causing user discomfort requires careful mechanical impedance matching and compliance optimization.
+
+Subsequent research shifted toward stationary pedestrian infrastructure. Instead of integrating harvesters into individual shoes, researchers embedded piezoelectric transducer arrays beneath floor tiles in high-traffic corridors. Sravani et al.~\cite{sravani2020piezoelectric} designed and evaluated an instrumented piezoelectric flooring tile incorporating circular PZT diaphragm discs. Their prototype demonstrated that mechanical force distribution across a multi-transducer matrix could generate sufficient instantaneous electrical charge to illuminate low-power signaling LEDs. However, their setup remained a self-contained analog circuit lacking digital measurement instrumentation, wireless data logging, or analytical intelligence.
+
+\section{Piezoelectric Energy Harvesting Technologies}
+Piezoelectric materials operate via electromechanical coupling between mechanical strain and electrical charge displacement. In kinetic harvesting applications, two broad material classes predominate:
+\begin{enumerate}
+    \item \textbf{Piezoceramics (Lead Zirconate Titanate, PZT):} PZT materials exhibit high piezoelectric charge coefficients ($d_{33} \approx 300\text{--}600\,\text{pC/N}$) and high electromechanical coupling factors ($k_{33} \approx 0.70$). Consequently, they generate substantial electrical energy density under mechanical compression. However, piezoceramics are inherently brittle, necessitating mechanical protection, shock-absorbing elastomers, and load-distribution plates to prevent cracking under excessive vertical impact stresses.
+    \item \textbf{Piezopolymers (Polyvinylidene Fluoride, PVDF):} PVDF and its copolymers offer exceptional mechanical flexibility, high mechanical strength, and fatigue resistance under cyclic deformation. Nevertheless, their piezoelectric charge coefficient is substantially lower ($d_{33} \approx -20\text{--}-35\,\text{pC/N}$), resulting in energy generation that is typically an order of magnitude lower than PZT for equivalent impact forces.
+\end{enumerate}
+
+Erturk and Inman~\cite{erturk2011piezoelectric} provided rigorous electroelastic modeling of piezoelectric energy harvesters, demonstrating that the electrical power delivered to a load depends critically on the electrical source impedance matching the load impedance at the excitation frequency. Because human footsteps occur at low fundamental frequencies ($1.0\text{--}2.5\,\text{Hz}$), the internal capacitive impedance of a piezoelectric disc:
+\begin{equation}
+Z_C = \frac{1}{2 \pi f C_p}
+\label{eq:piezo_impedance}
+\end{equation}
+is exceedingly high (often $100\,\text{k}\Omega$ to several $\text{M}\Omega$, where $C_p$ is the internal transducer capacitance, typically $10\text{--}50\,\text{nF}$). Consequently, direct connection of a low-impedance electrical load severely collapses the output voltage, yielding negligible power transfer. This fundamental physical constraint mandates an intermediate energy conditioning stage comprising rectification and capacitive buffering.
+
+Sodano, Inman, and Park~\cite{sodano2004estimation} investigated power harvesting circuit topologies, comparing standard full-wave diode bridge rectifiers against active synchronized switch harvesting on inductor (SSHI) techniques. While SSHI topologies improve energy extraction efficiency under harmonic vibration, passive bridge rectifiers utilizing low forward-drop Schottky diodes remain the standard for impulsive, non-periodic footstep transients due to their zero quiescent power draw and circuit simplicity.
+
+\section{IoT-Based Energy Monitoring Systems}
+The integration of Internet of Things (IoT) frameworks into renewable energy systems has transformed physical power collectors into intelligent telemetry nodes. Al-Fuqaha et al.~\cite{alfuqaha2015internet} provided a comprehensive survey of IoT communication protocols, architectures, and data management paradigms. They emphasized the critical role of lightweight application layer protocols (HTTP/REST, MQTT, CoAP, and WebSockets) in transmitting high-frequency sensor updates from resource-constrained microcontrollers to cloud infrastructure.
+
+Shen et al.~\cite{shen2018iot} implemented an edge-assisted intelligent IoT architecture for smart building energy monitoring. Their system demonstrated that shifting preliminary filtering, thresholding, and state detection to edge microcontrollers significantly conserves network bandwidth and reduces cloud processing latency. Rather than streaming raw analog waveforms continuously, the edge device transmits discrete event payloads and periodic statistical aggregations, preserving battery life and maintaining communication robustness under fluctuating network conditions.
+
+\section{ESP32-Based Monitoring Systems}
+The Espressif ESP32 system-on-chip (SoC) has emerged as a preferred edge computing platform for IoT instrumentation due to its dual-core Xtensa 32-bit LX6 microprocessor operating up to $240\,\text{MHz}$, integrated 2.4\,GHz Wi-Fi (802.11 b/g/n) and Bluetooth v4.2/BLE, and rich peripheral set~\cite{espressif2023esp32}. The SoC incorporates two 12-bit Successive Approximation Register (SAR) ADCs supporting up to 18 channels.
+
+However, academic literature identifies key operational constraints regarding the ESP32 ADC:
+\begin{itemize}
+    \item \textbf{Non-Linear Response Characteristics:} The native ESP32 ADC exhibits non-linear response curves near its operational boundaries (specifically below $0.1\,\text{V}$ and above $3.1\,\text{V}$ under 11\,dB attenuation). Accurate measurement mandates calibrated two-point piecewise characterization and external precision voltage dividing.
+    \item \textbf{High-Frequency RF Noise Coupling:} Active Wi-Fi transmissions introduce transient electrical switching noise into the analog subsystem. Mitigating this noise requires multi-sample oversampling (such as 16$\times$ hardware accumulation) combined with digital low-pass filtering, such as Exponential Moving Average (EMA) smoothing:
+    \begin{equation}
+    y[k] = \alpha \cdot x[k] + (1 - \alpha) \cdot y[k-1]
+    \label{eq:ema_formula}
+    \end{equation}
+    where $\alpha \in (0, 1]$ represents the smoothing factor.
+    \item \textbf{Channel Multiplexing Restrictions:} ADC2 channels cannot be reliably utilized while Wi-Fi transmission is active because the Wi-Fi driver shares internal hardware resources with ADC2. Consequently, precision analog inputs must be routed strictly through ADC1 channels (such as GPIO 34 and GPIO 35).
+\end{itemize}
+
+\section{Machine Learning-Based Footstep Classification}
+Biomechanical analysis of human gait traditionally relies on multi-axis force plates, optical motion capture suites, and wearable inertial measurement units (IMUs). Chen et al.~\cite{chen2019gait} conducted an extensive review of biomechanical energy harvesting and gait classification. They highlighted that floor-embedded ground reaction force sensors capture unique temporal force curves characterized by distinct phases: initial heel-strike shock impact, mid-stance weight transfer, and terminal toe-off impulse.
+
+Pedregosa et al.~\cite{pedregosa2011scikit} documented the algorithmic implementations of modern machine learning techniques within Python's Scikit-learn framework. For time-series sensor classification, supervised ensemble methods have consistently demonstrated superior generalization and noise tolerance compared to individual decision trees or distance-based classifiers. Breiman's Random Forest algorithm~\cite{breiman2001random} constructs an ensemble of randomized, de-correlated decision trees:
+\begin{equation}
+\hat{f}(x) = \frac{1}{B} \sum_{b=1}^B f_b(x)
+\label{eq:random_forest}
+\end{equation}
+where each tree $f_b$ is trained on a bootstrap sample of the training set with randomized feature subset splits. Random Forests provide intrinsic out-of-bag error estimation, robust handling of non-linear feature interactions, and computational efficiency suitable for sub-millisecond cloud inferencing.
+
+\section{Existing Research Approaches}
+Table~\ref{tab:literature_comparison} synthesizes key experimental approaches reported in the literature and contrasts them directly with the proposed StepCharge AI system across hardware, telemetry, machine learning, and measurement methodology.
+
+\section{Comparative Analysis}
+
+\begin{table}[H]
+\centering
+\small
+\renewcommand{\arraystretch}{1.2}
+\caption{Comparative analysis of existing footstep energy harvesting and monitoring systems.}
+\label{tab:literature_comparison}
+\begin{tabularx}{\textwidth}{|p{1.1in}|p{0.9in}|p{0.9in}|p{0.8in}|p{1.1in}|p{1.2in}|}
+\hline
+\textbf{Study / Author} & \textbf{Transducer} & \textbf{Storage / Yield} & \textbf{IoT / Cloud} & \textbf{Machine Learning} & \textbf{Key Limitations} \\
+\hline
+Kymissis et al. (1998)~\cite{kymissis1998parasitic} & PZT \& PVDF in shoe & Capacitor, $\approx 80\,\text{mJ}$ peak & None (Analog) & None & Brittle ceramic, mechanical fatigue, no data logging. \\
+\hline
+Paradiso \& Starner (2005)~\cite{paradiso2005energy} & Piezo \& EM scavengers & Various micro-buffers & None & None & Theoretical survey; lack of unified cloud architecture. \\
+\hline
+Sodano et al. (2004)~\cite{sodano2004estimation} & PZT cantilever beam & Rechargeable NiMH cell & None & None & Benchtop vibration shaker; not adapted to human gait. \\
+\hline
+Sravani et al. (2020)~\cite{sravani2020piezoelectric} & PZT flooring tile array & Direct LED output & None & None & No energy storage buffer, no microcontroller, zero data. \\
+\hline
+Shen et al. (2018)~\cite{shen2018iot} & Current / Environmental & Grid-powered IoT nodes & Edge Gateway / Cloud & Statistical anomaly & Monitors conventional power; no energy harvesting. \\
+\hline
+Chen et al. (2019)~\cite{chen2019gait} & Wearable IMUs \& Force plates & External battery pack & Bluetooth to PC & SVM / k-NN gait classification & Intrusive wearable sensors; no energy harvesting. \\
+\hline
+\textbf{StepCharge AI (Proposed)} & \textbf{PZT ceramic tile array} & \textbf{0.1\,F / 5.5\,V Supercap; dual-divider} & \textbf{ESP32 Wi-Fi, Node.js, MongoDB, Socket.IO} & \textbf{Random Forest, Group $K$-Fold, 5 temporal features} & \textbf{Direct voltage sensing; honest physical provenance.} \\
+\hline
+\end{tabularx}
+\end{table}
+
+\section{Research Gaps}
+A critical analysis of the surveyed literature reveals five prominent research gaps:
+\begin{enumerate}
+    \item \textbf{Fragmentation between Energy Harvesting and Digital Instrumentation:} Existing literature is sharply bifurcated into two mutually exclusive domains: physical electrical engineering research that treats tiles as isolated analog circuits without telemetry, and computer science research that deploys IoT sensor dashboards powered by conventional batteries. A unified, fully integrated cyber-physical architecture combining kinetic scavenging, digital filtering, and real-time cloud data pipelines remains conspicuously absent.
+    \item \textbf{Inflation of Harvested Energy and Lack of Provenance Transparency:} Numerous published studies claim unrealistic power outputs by multiplying peak open-circuit voltage spikes by theoretical short-circuit currents without matching source impedance or accounting for capacitor leakage, diode forward-voltage drops, and internal ESR. There is a marked deficiency in research that clearly differentiates directly measured quantities from calculated capacitor energy estimates.
+    \item \textbf{Methodological Flaws in Machine Learning Gait Evaluation:} Existing studies applying machine learning to footstep and gait data predominantly employ standard random train/test splits. When samples from the same individual appear in both training and test partitions, the classifier memorizes idiosyncratic personal cadence and gait rhythms rather than generalizing to kinetic impact intensity. Subject-independent cross-validation protocols are rarely enforced.
+    \item \textbf{Absence of Closed-Loop Load Actuation Feedback:} IoT energy platforms with remote load toggling frequently adopt open-loop command architectures, assuming that dispatching a network command implies physical actuation. They lack hardware readback mechanisms to verify actual GPIO logic states.
+    \item \textbf{Omission of Production-Grade Cloud Security:} Academic IoT prototypes routinely embed raw database credentials and unencrypted keys within firmware, bypass transport-layer encryption, and omit user authorization mechanisms (such as RBAC and HTTP-only session management).
+\end{enumerate}
+
+\section{Conclusion of Literature Survey}
+The literature survey confirms the technological feasibility of piezoelectric kinetic footstep harvesting while highlighting significant systemic shortcomings in existing implementations. Piezoelectric ceramic transducers provide high energy density under dynamic compressive impact, but require impedance-conscious rectification and supercapacitor buffering. The ESP32 SoC provides the required dual-core compute capability for edge filtering and wireless telemetry, provided that ADC non-linearities and channel conflicts are addressed. Supervised machine learning via Random Forests offers high classification accuracy on multi-dimensional kinetic waveforms, provided that subject-independent validation is strictly maintained. StepCharge AI is specifically architected to synthesize these findings and resolve the identified research gaps through an end-to-end, scientifically defensible platform.

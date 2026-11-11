@@ -1,0 +1,22 @@
+\chapter{Conclusion and Future Work}
+
+\section{Conclusion}
+This preliminary project report has detailed the design, implementation, and empirical validation of \textbf{StepCharge AI: Smart Footstep Energy Harvesting and Monitoring System}. The project successfully bridges physical micro-renewable energy harvesting with contemporary cyber-physical cloud architectures and machine learning analytics.
+
+Through rigorous engineering design, the system demonstrates that:
+\begin{enumerate}
+    \item \textbf{Kinetic Energy Harvesting is Viable:} An array of 8 Lead Zirconate Titanate (PZT-5) ceramic transducers embedded within an elastomeric flooring tile converts ambient footfall impacts into rectified DC charge. Utilizing low forward-drop Schottky bridge rectification and a 0.1\,F, 5.5\,V supercapacitor, the prototype reliably accumulated up to $0.730\,\text{J}$ of electrostatic energy over 60 consecutive walking steps, generating an average increment of $12.1\,\text{mJ}$ per step.
+    \item \textbf{Edge Signal Filtering Eliminates Noise:} Deploying 16$\times$ hardware oversampling and Exponential Moving Average smoothing ($\alpha = 0.25$) on the ESP32 microcontroller effectively suppresses Wi-Fi RF switching noise. Implementing a dual-threshold Schmitt trigger ($V_{\text{high}} = 0.80\,\text{V}$, $V_{\text{low}} = 0.55\,\text{V}$) combined with a 250\,ms refractory lockout window reduced false double-triggering from 28\% to zero, achieving 100\% footstep counting accuracy.
+    \item \textbf{Cloud Architecture Delivers Real-Time Observability:} The Node.js + Express backend, MongoDB Atlas document store, and Socket.IO real-time engine maintain sub-100\,ms end-to-end telemetry latency between physical footstep impacts and React 19 web dashboard updates, all protected by SHA-256 device authentication, Google OAuth 2.0, and HTTP-only session cookies verified through 101 automated Vitest tests.
+    \item \textbf{Subject-Independent ML Generalizes Effectively:} Supervised Random Forest classification operating on 5 time-domain kinetic features ($V_{\text{peak}}$, $V_{\text{avg}}$, $T_{\text{pulse}}$, $\Delta T_{\text{step}}$, $V_{\text{storage}}$) achieved an 88.6\% accuracy under strict Stratified Group $K$-Fold cross-validation across 6 participants, proving that kinetic ground reaction force transients provide generalizable intensity discrimination without identity memorization.
+    \item \textbf{Closed-Loop Hardware Control Ensures Verifiable Integrity:} Driving demonstration loads through MOSFETs with physical GPIO readback confirmation eliminates open-loop actuation discrepancies, ensuring that the cloud dashboard visually displays active load states only upon verified hardware execution.
+\end{enumerate}
+
+\section{Future Enhancements}
+During Semester 2 and subsequent research phases, the project will be advanced along four primary trajectories:
+\begin{enumerate}
+    \item \textbf{Multi-Tile Modular Walkway Matrix:} Fabricating an interconnected array of 4 to 8 modular smart tiles deployed in a high-traffic college corridor, evaluating energy harvesting yields under multi-pedestrian concurrent footfalls.
+    \item \textbf{Direct Current and Power Sensing:} Integrating an I2C-based INA219 high-precision current shunt IC to directly measure instantaneous milliampere load currents and delivered power, providing complete electrical provenance.
+    \item \textbf{On-Device TinyML Deployment:} Quantizing the trained Random Forest classifier or deploying a compact 1D-Convolutional Neural Network onto the ESP32 using TensorFlow Lite for Microcontrollers (TFLite Micro), executing edge classification in under 5\,ms without requiring external cloud microservice round-trips.
+    \item \textbf{Synchronized Switch Harvesting on Inductor (SSHI):} Implementing active electronic switching interfaces to counteract transducer internal capacitance, aiming to double electrical energy extraction efficiency.
+\end{enumerate}
