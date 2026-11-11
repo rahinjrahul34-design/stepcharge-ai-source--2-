@@ -2,7 +2,7 @@
 
 \section{Advantages}
 The StepCharge AI system delivers substantial technological, operational, and environmental advantages over traditional energy monitoring and pedestrian tracking platforms:
-\begin{enumerate}
+\begin{enumerate}[itemsep=2pt,parsep=1pt,topsep=3pt]
     \item \textbf{Decentralized Renewable Micro-Generation:} Harvests clean electrical energy directly from ambient human locomotion, converting unavoidable kinetic floor impacts into usable electrostatic charge.
     \item \textbf{Reduction in Battery Replacement Overheads:} Eliminates or drastically reduces reliance on disposable alkaline or lithium-ion coin cells for distributed indoor IoT beacons, structural health nodes, and pathway orientation lights, mitigating recurring labor and procurement costs.
     \item \textbf{Privacy-Preserving Foot-Traffic Analytics:} Extracts footstep cadence, walking velocity distributions, and impact intensity without utilizing optical cameras, microphones, or intrusive wearable sensors, ensuring full compliance with privacy standards and personal data protection regulations.
@@ -13,7 +13,7 @@ The StepCharge AI system delivers substantial technological, operational, and en
 
 \section{Limitations}
 To maintain academic rigor, the following practical engineering limitations are identified:
-\begin{enumerate}
+\begin{enumerate}[itemsep=2pt,parsep=1pt,topsep=3pt]
     \item \textbf{Footwear Sole Damping:} The compliance of shoe sole materials acts as a mechanical low-pass filter. Thick elastomeric running shoes attenuate peak impact voltage by up to $38\%$ and broaden pulse width relative to rigid dress shoes, requiring footwear normalization in precise gait studies.
     \item \textbf{High Source Impedance and Low Average Current:} Piezoelectric transducers produce high voltages ($10\text{--}40\,\text{V}$) but extremely low continuous currents ($\mu\text{A}$ range). Energy must be accumulated over multiple footsteps before operating active DC loads.
     \item \textbf{Electromechanical Saturation:} PZT ceramics exhibit non-linear output compression under heavy impact forces ($>800\,\text{N}$), compressing the voltage differentiation between vigorous walking and rapid running.
@@ -23,7 +23,7 @@ To maintain academic rigor, the following practical engineering limitations are 
 
 \section{Applications}
 StepCharge AI is suited for deployment across diverse smart infrastructure environments:
-\begin{itemize}
+\begin{itemize}[itemsep=2pt,parsep=1pt,topsep=3pt]
     \item \textbf{Metropolitan Transit Hubs:} Subways, railway stations, and airport concourses where hundreds of thousands of daily commuters generate continuous kinetic energy capable of powering emergency exit orientation markers, turnstile sensors, and passenger tracking beacons.
     \item \textbf{Academic and Industrial Corridors:} High-traffic university hallways and corporate walkways, providing localized auxiliary power while passively logging building occupancy density.
     \item \textbf{Retail and Commercial Centers:} Shopping malls and exhibition pavilions tracking foot-traffic heatmaps and customer dwell times without optical surveillance cameras.
@@ -32,7 +32,7 @@ StepCharge AI is suited for deployment across diverse smart infrastructure envir
 
 \section{Future Scope}
 Future research and development iterations will explore:
-\begin{enumerate}
+\begin{enumerate}[itemsep=2pt,parsep=1pt,topsep=3pt]
     \item \textbf{Scalable Multi-Tile Flooring Matrix:} Interconnecting an array of modular tiles with localized energy routing to power localized micro-grids and large-scale LED directional pathways.
     \item \textbf{Synchronized Switch Harvesting on Inductor (SSHI):} Implementing active non-linear electronic switching (P-SSHI or S-SSHI) to boost electromechanical energy extraction efficiency by up to $200\%$ compared to passive bridge rectifiers.
     \item \textbf{On-Device Edge Machine Learning (TinyML):} Quantizing the Random Forest or 1D-Convolutional Neural Network into an 8-bit integer model running directly on the ESP32 via TensorFlow Lite for Microcontrollers (TFLite Micro), eliminating cloud inference latency.
@@ -41,54 +41,77 @@ Future research and development iterations will explore:
 
 \section{Sustainability and Environmental Benefits}
 StepCharge AI contributes directly to global environmental sustainability goals:
-\begin{itemize}
+\begin{itemize}[itemsep=2pt,parsep=1pt,topsep=3pt]
     \item \textbf{Reduction in Hazardous E-Waste:} Deploying kinetic harvesting mitigates the disposal of toxic heavy metals (lithium, cadmium, lead) found in disposable chemical batteries.
     \item \textbf{Zero-Emission Energy Scavenging:} Generates 100\% clean, carbon-neutral electricity from human motion without fossil fuels or greenhouse gas emissions.
     \item \textbf{Alignment with UN Sustainable Development Goals (SDGs):}
-    \begin{itemize}
+    \begin{itemize}[itemsep=1pt,parsep=0pt,topsep=2pt]
         \item \textbf{SDG 7 (Affordable and Clean Energy):} Promotes localized micro-renewable energy harvesting.
         \item \textbf{SDG 9 (Industry, Innovation, and Infrastructure):} Upgrades public facilities with intelligent cyber-physical sensing infrastructure.
         \item \textbf{SDG 11 (Sustainable Cities and Communities):} Fosters energy-efficient, self-powered smart city installations.
     \end{itemize}
 \end{itemize}
 
+\clearpage
 \section{Cost Considerations and Bill of Materials}
-Table~\ref{tab:bom} outlines the prototype Bill of Materials (BOM), demonstrating that the entire edge harvesting and monitoring tile can be produced cost-effectively for approximately \textbf{INR 2,240} ($\approx \$27\,\text{USD}$).
+Table~\ref{tab:bom} outlines the tentative project development budget and comprehensive Bill of Materials (BOM) approved for the StepCharge AI smart footstep energy harvesting and monitoring prototype (Group ID: 13). The total development cost across all 21 hardware components, electrical instrumentation modules, structural materials, and developer AI resources amounts to exactly \textbf{INR 7,469.00} ($\approx \$90\,\text{USD}$).
 
 \begin{table}[H]
 \centering
 \small
-\renewcommand{\arraystretch}{1.25}
-\caption{Comprehensive prototype Bill of Materials (BOM) and cost breakdown.}
+\renewcommand{\arraystretch}{1.14}
+\caption{Approved project development budget and Bill of Materials (BOM).}
 \label{tab:bom}
-\begin{tabularx}{\textwidth}{@{} L{1.8in} Y c r r @{}}
+\begin{tabularx}{\textwidth}{@{} M{0.7in} Y R{1.2in} @{}}
 \toprule
 \rowcolor{iceblue}
-\tableheader{Component Description} & \tableheader{Part / Specification} & \tableheader{Qty} & \tableheader{Unit Price (INR)} & \tableheader{Total (INR)} \\
+\tableheader{Sr. No.} & \tableheader{Component / Resource Description} & \tableheader{Price (INR)} \\
 \midrule
 \rowcolor{white}
-Piezoelectric Transducers & 35\,mm PZT-5 Ceramic Brass Discs & 8 & 35.00 & 280.00 \\
+1 & Piezoelectric Sensor 27\,mm (Pack of 15) & 491.00 \\
 \rowcolor{lightgrey}
-Schottky Barrier Diodes & 1N5819 (40\,V / 1\,A, Ultra-Low $V_F$) & 4 & 5.00 & 20.00 \\
+2 & ESP32 NodeMCU 30 Pin & 549.00 \\
 \rowcolor{white}
-Zener Clamping Diode & 1N4733A (5.1\,V / 1\,W Transient Clamp) & 1 & 5.00 & 5.00 \\
+3 & 1N4007 Diodes (Pack of 50) & 107.00 \\
 \rowcolor{lightgrey}
-Supercapacitor Buffer & 0.1\,F / 5.5\,V EDLC Coin Cell & 1 & 180.00 & 180.00 \\
+4 & Electronic Component Kit & 199.00 \\
 \rowcolor{white}
-Precision Metal-Film Resistors & $100\,\text{k}\Omega$, 1\% Metal-Film Dividers & 4 & 2.50 & 10.00 \\
+5 & Automatic Over/Under Voltage Protection Meter & 795.00 \\
 \rowcolor{lightgrey}
-Microcontroller Board & ESP32-WROOM-32D Development Board & 1 & 450.00 & 450.00 \\
+6 & 5.5\,V Super Capacitor & 269.00 \\
 \rowcolor{white}
-Logic-Level MOSFETs & IRLZ44N N-Channel Power MOSFETs & 2 & 45.00 & 90.00 \\
+7 & XL6009 DC--DC Boost Converter & 199.00 \\
 \rowcolor{lightgrey}
-Demonstration Loads & High-Efficiency LED \& 5\,V Miniature Fan & 1 & 120.00 & 120.00 \\
+8 & $16\times 2$ LCD with $\text{I}^2\text{C}$ Module & 249.00 \\
 \rowcolor{white}
-Mechanical Tile Enclosure & Acrylic Plate, Damped Substrate, Silicone & 1 & 850.00 & 850.00 \\
+9 & 5\,V DC Fan & 180.00 \\
 \rowcolor{lightgrey}
-Prototyping PCB \& Connectors & FR-4 PCB, Terminal Blocks, Jumper Wires & 1 & 235.00 & 235.00 \\
+10 & 5\,mm LED Pack & 49.00 \\
+\rowcolor{white}
+11 & IRF520 MOSFET Driver Module & 139.00 \\
+\rowcolor{lightgrey}
+12 & Wire Box Repair Kit & 419.00 \\
+\rowcolor{white}
+13 & Acrylic Base Plate & 349.00 \\
+\rowcolor{lightgrey}
+14 & Jumper Wires & 54.00 \\
+\rowcolor{white}
+15 & 830-Point Breadboard & 99.00 \\
+\rowcolor{lightgrey}
+16 & 12\,V 1.3\,Ah Rechargeable Battery & 678.00 \\
+\rowcolor{white}
+17 & Bridge Rectifier & 20.00 \\
+\rowcolor{lightgrey}
+18 & Voltage Sensor Module (0--25\,V) & 35.00 \\
+\rowcolor{white}
+19 & Current Sensor Module (ACS712, 5\,A) & 90.00 \\
+\rowcolor{lightgrey}
+20 & Resistors & 100.00 \\
+\rowcolor{white}
+21 & Claude AI Pro Subscription (1 Month) & 2,399.00 \\
 \midrule
 \rowcolor{iceblue}
-\multicolumn{4}{@{}l}{\textbf{\color{deepnavy}Total Comprehensive Prototype Cost}} & \textbf{\color{deepnavy}INR 2,240.00} \\
+\multicolumn{2}{@{\hspace{6pt}}l}{\textbf{\color{deepnavy}Total Estimated Cost}} & \textbf{\color{deepnavy}INR 7,469.00} \\
 \bottomrule
 \end{tabularx}
 \end{table}
