@@ -6,8 +6,8 @@ Rigorous experimental testing and validation are essential to verify that the cy
 \section{Hardware Testing}
 Hardware evaluation examined the electromechanical properties of the piezoelectric transducer array under controlled vertical compressive impacts:
 \begin{itemize}
-    \item \textbf{Open-Circuit Transducer Potential:} Direct oscilloscope probing across a single 35\,mm PZT-5 disc during an unbuffered footfall produced open-circuit AC voltage peaks ranging from $14.2\,\text{V}$ to $32.6\,\text{V}$.
-    \item \textbf{Rectification and Forward Drop:} Probing downstream of the 1N5819 Schottky bridge confirmed full-wave rectification into positive DC pulses, with an observed forward voltage drop of $0.34\,\text{V}$ per diode branch, verifying minimal power loss.
+    \item \textbf{Open-Circuit Transducer Potential:} Direct oscilloscope probing across a single 27\,mm PZT-5 disc during an unbuffered footfall produced open-circuit AC voltage peaks ranging from $14.2\,\text{V}$ to $32.6\,\text{V}$.
+    \item \textbf{Rectification and Isolation Verification:} Probing downstream of the integrated silicon bridge rectifier confirmed clean full-wave rectification into positive DC pulses, with reverse current backfeed reliably blocked by the 1N4007 isolation diodes.
     \item \textbf{Overvoltage Clamping Verification:} Heavy simulated impacts ($>800\,\text{N}$) generated raw spikes approaching $42\,\text{V}$. The 5.1\,V Zener diode successfully clamped the DC rail to $5.08\,\text{V}$, preventing damage to the 5.5\,V supercapacitor and the ESP32 ADC.
 \end{itemize}
 

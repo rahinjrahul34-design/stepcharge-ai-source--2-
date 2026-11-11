@@ -138,8 +138,8 @@ The codebase must enforce strict modular decoupling: TypeScript interfaces acros
 \section{Hardware Requirements}
 The hardware requirements for deploying the complete StepCharge AI system are summarized as follows:
 \begin{itemize}
-    \item \textbf{Harvester Module:} 8$\times$ 35\,mm PZT-5 piezoelectric ceramic diaphragm discs wired in a series-parallel array, integrated into a load-distributing mechanical flooring tile.
-    \item \textbf{Power Conditioning Circuit:} 4$\times$ 1N5819 Schottky diodes, 5.1\,V Zener overvoltage clamp, 0.1\,F / 5.5\,V supercapacitor, and dual 2:1 precision resistive dividers ($100\,\text{k}\Omega / 100\,\text{k}\Omega$, 1\% tolerance).
+    \item \textbf{Harvester Module:} 8$\times$ 27\,mm PZT-5 piezoelectric ceramic diaphragm discs (selected from a 15-pack) wired in a series-parallel array, integrated into a load-distributing mechanical flooring tile.
+    \item \textbf{Power Conditioning Circuit:} Integrated silicon full-wave bridge rectifier, 1N4007 isolation diodes, 5.1\,V Zener overvoltage clamp, 5.5\,V supercapacitor kinetic buffer, 12\,V 1.3\,Ah rechargeable battery power bus, XL6009 boost converter, and dual 2:1 precision resistive dividers ($100\,\text{k}\Omega / 100\,\text{k}\Omega$, 1\% tolerance).
     \item \textbf{Processing Board:} Espressif ESP32-WROOM-32D development board powered via 5\,V micro-USB.
     \item \textbf{Actuation Circuit:} 2$\times$ IRLZ44N N-channel logic-level MOSFETs driving a 5\,mm green LED and a 5\,V miniature DC brushless demonstration fan.
     \item \textbf{Networking Infrastructure:} 2.4\,GHz Wi-Fi access point supporting IEEE 802.11 b/g/n with WPA2-PSK security.

@@ -7,7 +7,7 @@ The implementation of StepCharge AI translates the theoretical design into a ver
 The physical prototype was constructed using an iterative benchtop prototyping methodology. The mechanical structure consists of a sandwich enclosure:
 \begin{enumerate}
     \item \textbf{Base Substrate:} A 12\,mm high-density plywood baseplate providing structural rigidity and dampening acoustic reflections from the floor.
-    \item \textbf{Transducer Matrix Layer:} Eight 35\,mm Lead Zirconate Titanate (PZT-5) piezoelectric diaphragm discs arranged in a $2 \times 4$ rectangular grid. Each disc is seated on high-resilience silicone O-rings to permit controlled flexural deformation without edge pinning.
+    \item \textbf{Transducer Matrix Layer:} Eight 27\,mm Lead Zirconate Titanate (PZT-5) piezoelectric diaphragm discs (selected from a 15-pack) arranged in a $2 \times 4$ rectangular grid. Each disc is seated on high-resilience silicone O-rings to permit controlled flexural deformation without edge pinning.
     \item \textbf{Impact Transmission Plate:} A 6\,mm transparent polymethyl methacrylate (acrylic) surface plate that distributes the pedestrian's vertical heel-strike load uniformly across the underlying transducers.
     \item \textbf{Perimeter Shock Absorbers:} Neoprene elastomeric foam perimeter gaskets that absorb lateral shear forces and restore the acrylic plate to its neutral equilibrium state following impact release.
 \end{enumerate}
@@ -18,9 +18,10 @@ The eight piezoelectric discs are electrically interconnected in a series-parall
 \section{Rectification, Conditioning and Supercapacitor Storage}
 The conditioning circuit is assembled on a dedicated prototyping printed circuit board (PCB):
 \begin{itemize}
-    \item \textbf{Rectification:} A full-wave bridge rectifier constructed with four 1N5819 Schottky barrier diodes. The low forward-voltage drop ($V_F \approx 0.35\,\text{V}$) ensures that low-energy footfalls are efficiently rectified.
+    \item \textbf{Rectification:} An integrated silicon full-wave bridge rectifier module (1000\,V PIV), complemented by 1N4007 diodes for reverse current isolation and inductive load flyback suppression, ensuring that high-voltage footfall impulses are converted into DC charge without backfeed leakage.
     \item \textbf{Voltage Clamping:} A 5.1\,V Zener diode (1N4733A) is connected across the rectified DC rail in reverse breakdown configuration, safely clamping voltage spikes exceeding 5.1\,V to protect the supercapacitor and the ESP32.
-    \item \textbf{Energy Storage Reservoir:} An electric double-layer supercapacitor rated at 0.1\,F and 5.5\,V is positioned downstream of the rectifier.
+    \item \textbf{Energy Storage Reservoir:} An electric double-layer supercapacitor rated at 5.5\,V is positioned downstream of the rectifier to serve as the dynamic kinetic buffer.
+    \item \textbf{Continuous System Power:} A 12\,V 1.3\,Ah rechargeable battery powers the ESP32 microcontroller, I$^2$C LCD, and demo loads, ensuring uninterrupted operation during quiet intervals.
     \item \textbf{Sensing Dividers:} Two separate precision resistive dividers ($100\,\text{k}\Omega / 100\,\text{k}\Omega$, metal-film, 1\% tolerance) scale the rectified pulse rail and the supercapacitor terminal voltage by a factor of 2.0.
 \end{itemize}
 
@@ -139,7 +140,7 @@ The client dashboard is developed using React 19, TypeScript, and Tailwind CSS. 
 Hardware and software tiers operate in a closed feedback loop:
 \begin{enumerate}
     \item Mechanical footstep impact $\rightarrow$ Piezoelectric charge generated.
-    \item Schottky rectification $\rightarrow$ Supercapacitor accumulates charge.
+    \item Full-wave bridge rectification $\rightarrow$ Supercapacitor accumulates charge.
     \item ESP32 Core 1 detects step $\rightarrow$ Caches peak, average, and duration.
     \item ESP32 Core 0 transmits HTTPS POST $\rightarrow$ Node.js backend validates payload.
     \item Backend calls Python ML microservice $\rightarrow$ Predicts gait class.

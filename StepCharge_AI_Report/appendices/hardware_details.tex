@@ -36,17 +36,20 @@ Ground Reference & GND & System Common Ground & Star Ground for Analog and Power
 \section{Transducer Matrix Electrical Properties}
 \begin{itemize}
     \item \textbf{Piezoelectric Material:} Lead Zirconate Titanate (PZT-5).
-    \item \textbf{Element Dimensions:} 35\,mm outer diameter, 0.30\,mm brass plate thickness, 0.20\,mm ceramic thickness.
-    \item \textbf{Resonant Frequency:} $2.8\,\text{kHz} \pm 0.5\,\text{kHz}$.
-    \item \textbf{Static Capacitance ($C_p$):} $28\,\text{nF} \pm 30\%$ per disc at $1\,\text{kHz}$.
-    \item \textbf{Matrix Array Topography:} 8 discs organized as 4 parallel branches of 2 series-connected discs.
-    \item \textbf{Array Equivalent Capacitance ($C_{\text{eq}}$):} $28\,\text{nF} \times \frac{4}{2} = 56\,\text{nF}$.
+    \item \textbf{Element Dimensions:} 27\,mm outer diameter, 0.30\,mm brass plate thickness, 0.20\,mm ceramic thickness.
+    \item \textbf{Resonant Frequency:} $3.6\,\text{kHz} \pm 0.5\,\text{kHz}$.
+    \item \textbf{Static Capacitance ($C_p$):} $25\,\text{nF} \pm 30\%$ per disc at $1\,\text{kHz}$.
+    \item \textbf{Matrix Array Topography:} 8 discs selected from the 15-pack, organized as 4 parallel branches of 2 series-connected discs.
+    \item \textbf{Array Equivalent Capacitance ($C_{\text{eq}}$):} $25\,\text{nF} \times \frac{4}{2} = 50\,\text{nF}$.
 \end{itemize}
 
-\section{Power Conditioning Component Parameters}
+\section{Power Conditioning and Energy Management Parameters}
 \begin{itemize}
-    \item \textbf{Rectifier Diodes:} 4$\times$ 1N5819 Schottky Barrier Diodes ($V_{\text{RRM}} = 40\,\text{V}$, $I_F = 1.0\,\text{A}$, $V_F = 0.35\,\text{V}$ at $0.1\,\text{A}$).
-    \item \textbf{Overvoltage Clamping:} 1N4733A Zener Diode ($V_Z = 5.1\,\text{V}$, $P_D = 1.0\,\text{W}$).
-    \item \textbf{Energy Storage Buffer:} 0.1\,F, 5.5\,V Coin-Type Electric Double-Layer Capacitor ($\text{ESR} \le 30\,\Omega$ at $1\,\text{kHz}$).
+    \item \textbf{Primary Rectifier:} Integrated Full-Wave Silicon Bridge Rectifier Unit ($V_{\text{RRM}} = 1000\,\text{V}$, $I_F = 1.0\,\text{A}$) providing robust high-voltage transient conversion.
+    \item \textbf{Isolation and Flyback Diodes:} 1N4007 Silicon Rectifier Diodes ($V_{\text{RRM}} = 1000\,\text{V}$, $I_F = 1.0\,\text{A}$) for reverse-current blocking and inductive flyback clamping.
+    \item \textbf{Overvoltage Clamping:} 1N4733A Zener Diode ($V_Z = 5.1\,\text{V}$, $P_D = 1.0\,\text{W}$) and Automatic Over/Under Voltage Protection Meter.
+    \item \textbf{Kinetic Storage Buffer:} 5.5\,V Supercapacitor (0.1\,F EDLC) for dynamic charge capture without chemical degradation.
+    \item \textbf{Continuous System Power Bus:} 12\,V 1.3\,Ah Rechargeable Battery ensuring 24/7 uninterrupted operation of ESP32 and peripheral displays.
+    \item \textbf{Voltage Step-Up Regulation:} XL6009 DC--DC Boost Converter module interfacing harvested storage with downstream power rails.
     \item \textbf{Voltage Dividers:} $100\,\text{k}\Omega \pm 1\%$ Metal-Film Resistors ($R_1, R_2, R_3, R_4$). Input impedance to ground: $200\,\text{k}\Omega$.
 \end{itemize}

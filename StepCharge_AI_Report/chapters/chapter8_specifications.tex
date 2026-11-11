@@ -54,64 +54,77 @@ StepCharge AI contributes directly to global environmental sustainability goals:
 
 \clearpage
 \section{Cost Considerations and Bill of Materials}
-Table~\ref{tab:bom} outlines the tentative project development budget and comprehensive Bill of Materials (BOM) approved for the StepCharge AI smart footstep energy harvesting and monitoring prototype (Group ID: 13). The total development cost across all 21 hardware components, electrical instrumentation modules, structural materials, and developer AI resources amounts to exactly \textbf{INR 7,469.00} ($\approx \$90\,\text{USD}$).
+Table~\ref{tab:bom} outlines the tentative project development budget and comprehensive Bill of Materials (BOM) approved for the StepCharge AI smart footstep energy harvesting and monitoring prototype (Group ID: 13). The expenditure is classified into \textbf{Part A: Physical Hardware \& Enclosure Components} (totaling INR 5,070.00) and \textbf{Part B: Software \& AI Development Tooling} (totaling INR 2,399.00), yielding a combined total development investment of exactly \textbf{INR 7,469.00} ($\approx \$90\,\text{USD}$).
 
 \begin{table}[H]
 \centering
-\small
-\renewcommand{\arraystretch}{1.14}
-\caption{Approved project development budget and Bill of Materials (BOM).}
+\footnotesize
+\renewcommand{\arraystretch}{1.03}
+\caption{Approved project development budget classified by hardware and software tooling.}
 \label{tab:bom}
-\begin{tabularx}{\textwidth}{@{} M{0.7in} Y R{1.2in} @{}}
+\begin{tabularx}{\textwidth}{@{} M{0.55in} Y R{1.1in} @{}}
 \toprule
 \rowcolor{iceblue}
 \tableheader{Sr. No.} & \tableheader{Component / Resource Description} & \tableheader{Price (INR)} \\
 \midrule
+\rowcolor{lightgrey!60}
+\multicolumn{3}{@{\hspace{6pt}}l}{\textbf{\color{profblue}Part A: Physical Hardware Prototype Components \& Mechanical Enclosure}} \\
+\midrule
 \rowcolor{white}
 1 & Piezoelectric Sensor 27\,mm (Pack of 15) & 491.00 \\
 \rowcolor{lightgrey}
-2 & ESP32 NodeMCU 30 Pin & 549.00 \\
+2 & ESP32 NodeMCU 30 Pin Development Board & 549.00 \\
 \rowcolor{white}
-3 & 1N4007 Diodes (Pack of 50) & 107.00 \\
+3 & 1N4007 Diodes (Pack of 50, Isolation \& Flyback) & 107.00 \\
 \rowcolor{lightgrey}
-4 & Electronic Component Kit & 199.00 \\
+4 & Electronic Component Kit (Prototyping Passives) & 199.00 \\
 \rowcolor{white}
 5 & Automatic Over/Under Voltage Protection Meter & 795.00 \\
 \rowcolor{lightgrey}
-6 & 5.5\,V Super Capacitor & 269.00 \\
+6 & 5.5\,V Super Capacitor (Kinetic Electrostatic Buffer) & 269.00 \\
 \rowcolor{white}
-7 & XL6009 DC--DC Boost Converter & 199.00 \\
+7 & XL6009 DC--DC Boost Converter Module & 199.00 \\
 \rowcolor{lightgrey}
-8 & $16\times 2$ LCD with $\text{I}^2\text{C}$ Module & 249.00 \\
+8 & $16\times 2$ LCD with $\text{I}^2\text{C}$ Interface Module & 249.00 \\
 \rowcolor{white}
-9 & 5\,V DC Fan & 180.00 \\
+9 & 5\,V DC Fan (Auxiliary Demonstration Load) & 180.00 \\
 \rowcolor{lightgrey}
-10 & 5\,mm LED Pack & 49.00 \\
+10 & 5\,mm High-Efficiency LED Pack (Demo Load) & 49.00 \\
 \rowcolor{white}
-11 & IRF520 MOSFET Driver Module & 139.00 \\
+11 & IRF520 MOSFET Driver Module (Load Switching) & 139.00 \\
 \rowcolor{lightgrey}
 12 & Wire Box Repair Kit & 419.00 \\
 \rowcolor{white}
-13 & Acrylic Base Plate & 349.00 \\
+13 & Acrylic Base Plate Enclosure & 349.00 \\
 \rowcolor{lightgrey}
-14 & Jumper Wires & 54.00 \\
+14 & Jumper Wires (Assorted Male--Female / Male--Male) & 54.00 \\
 \rowcolor{white}
-15 & 830-Point Breadboard & 99.00 \\
+15 & 830-Point Solderless Breadboard & 99.00 \\
 \rowcolor{lightgrey}
-16 & 12\,V 1.3\,Ah Rechargeable Battery & 678.00 \\
+16 & 12\,V 1.3\,Ah Rechargeable Battery (Continuous System Power) & 678.00 \\
 \rowcolor{white}
-17 & Bridge Rectifier & 20.00 \\
+17 & Full-Wave Bridge Rectifier Unit & 20.00 \\
 \rowcolor{lightgrey}
-18 & Voltage Sensor Module (0--25\,V) & 35.00 \\
+18 & Voltage Sensor Module (0--25\,V Analog Divider) & 35.00 \\
 \rowcolor{white}
-19 & Current Sensor Module (ACS712, 5\,A) & 90.00 \\
+19 & Current Sensor Module (ACS712, 5\,A Range) & 90.00 \\
 \rowcolor{lightgrey}
-20 & Resistors & 100.00 \\
+20 & Precision Resistors Pack ($100\,\text{k}\Omega$ Dividers \& Biasing) & 100.00 \\
+\midrule
 \rowcolor{white}
-21 & Claude AI Pro Subscription (1 Month) & 2,399.00 \\
+\multicolumn{2}{@{\hspace{12pt}}l}{\textit{\textbf{Subtotal: Physical Hardware \& Enclosure BOM}}} & \textit{\textbf{INR 5,070.00}} \\
+\midrule
+\rowcolor{lightgrey!60}
+\multicolumn{3}{@{\hspace{6pt}}l}{\textbf{\color{profblue}Part B: Software, Development \& AI Engineering Tooling}} \\
+\midrule
+\rowcolor{white}
+21 & Claude AI Pro Subscription (1 Month Development Tooling) & 2,399.00 \\
+\midrule
+\rowcolor{white}
+\multicolumn{2}{@{\hspace{12pt}}l}{\textit{\textbf{Subtotal: Software \& AI Development Tooling}}} & \textit{\textbf{INR 2,399.00}} \\
 \midrule
 \rowcolor{iceblue}
-\multicolumn{2}{@{\hspace{6pt}}l}{\textbf{\color{deepnavy}Total Estimated Cost}} & \textbf{\color{deepnavy}INR 7,469.00} \\
+\multicolumn{2}{@{\hspace{6pt}}l}{\textbf{\color{deepnavy}Total Combined Project Development Budget}} & \textbf{\color{deepnavy}INR 7,469.00} \\
 \bottomrule
 \end{tabularx}
 \end{table}

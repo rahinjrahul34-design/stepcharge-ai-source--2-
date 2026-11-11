@@ -17,7 +17,7 @@ Therefore, the core problem is to design, construct, and validate an integrated 
 The overall goal of StepCharge AI is to deliver a functional, research-grade, and academically defensible IoT kinetic energy harvesting and monitoring platform. The specific operational objectives are:
 \begin{itemize}
     \item \textbf{Objective 1 (Physical Transduction):} Assemble a piezoelectric transducer tile capable of converting human heel-strike and toe-off mechanical impacts into electrical charge.
-    \item \textbf{Objective 2 (Power Conditioning and Storage):} Implement a low forward-drop Schottky bridge rectifier and a 0.1\,F, 5.5\,V supercapacitor storage buffer with hardware clamping and software safety guards.
+    \item \textbf{Objective 2 (Power Conditioning and Hybrid Storage):} Implement an integrated full-wave bridge rectifier, 1N4007 isolation diodes, a 5.5\,V supercapacitor kinetic buffer, and a 12\,V 1.3\,Ah battery system power bus with hardware clamping and voltage monitoring guards.
     \item \textbf{Objective 3 (Edge Filtering and Detection):} Program an ESP32 microcontroller to execute 16$\times$ ADC oversampling, Exponential Moving Average smoothing ($\alpha = 0.25$), and dual-threshold Schmitt trigger step detection ($V_{\text{high}} = 0.80\,\text{V}$, $V_{\text{low}} = 0.55\,\text{V}$) with a 200--250\,ms refractory lockout.
     \item \textbf{Objective 4 (Secure Telemetry Pipeline):} Implement a RESTful Node.js + Express backend that authenticates edge devices using SHA-256 tokens and enforces role-based access control (RBAC).
     \item \textbf{Objective 5 (Cloud Persistence):} Store telemetry frames and footstep events in MongoDB Atlas using compound indices optimized for real-time querying.
@@ -32,7 +32,7 @@ The scope of the StepCharge AI preliminary project is precisely bounded as follo
     \item \textbf{In-Scope:}
     \begin{itemize}
         \item Design and benchtop fabrication of a single-tile piezoelectric harvester module housing multiple PZT discs.
-        \item Full-wave Schottky rectification, overvoltage clamping, and supercapacitor storage.
+        \item Full-wave bridge rectification, 1N4007 isolation diodes, 5.5\,V supercapacitor buffering, and 12\,V battery power management.
         \item Dual-channel analog voltage sensing (piezo pulse voltage on GPIO 34, supercapacitor storage voltage on GPIO 35) via calibrated resistive dividers.
         \item ESP32 C++ firmware performing digital filtering, Schmitt trigger step detection, and periodic HTTPS REST telemetry.
         \item Node.js, Express, and TypeScript backend architecture with MongoDB Atlas integration and Socket.IO real-time broadcasting.
@@ -70,7 +70,7 @@ The limitations inherent in existing systems include:
 \section{Proposed System}
 The proposed \textbf{StepCharge AI} platform resolves these limitations by implementing a unified, multi-tiered architecture that tightly couples physical harvesting with digital intelligence:
 \begin{itemize}
-    \item \textbf{Physical Layer:} PZT transducer matrix feeding a low forward-drop Schottky bridge rectifier, protected by transient voltage suppression, buffering charge into a 0.1\,F / 5.5\,V supercapacitor.
+    \item \textbf{Physical Layer:} PZT transducer matrix (27\,mm discs) feeding an integrated silicon bridge rectifier, protected by transient voltage suppression and 1N4007 diodes, buffering charge into a 5.5\,V supercapacitor interfaced with a 12\,V battery bus.
     \item \textbf{Embedded Layer:} ESP32 dual-core SoC running firmware that acquires analog voltages at 50\,Hz with 16$\times$ oversampling, applies Exponential Moving Average smoothing, evaluates footsteps through a dual-threshold Schmitt trigger with hysteresis, and manages closed-loop MOSFET load switching.
     \item \textbf{Cloud \& API Layer:} Node.js + Express backend written in TypeScript implementing SHA-256 device authentication, Google OAuth 2.0 user sessions, rate limiting, and MongoDB Atlas time-series persistence.
     \item \textbf{Real-Time Layer:} Socket.IO room namespaces enabling instant telemetry updates to connected clients without polling.
@@ -148,13 +148,17 @@ The hardware specifications required for the physical prototype and testing envi
 \rowcolor{white}
 Microcontroller & Espressif ESP32-WROOM-32D (Dual-Core, 240\,MHz, 520\,KB SRAM, Wi-Fi/BLE) & Edge signal acquisition, digital filtering, Schmitt trigger detection, and HTTPS telemetry. \\
 \rowcolor{lightgrey}
-Piezoelectric Transducers & 35\,mm PZT-5 Ceramic Brass Diaphragm Discs (Quantity: 8) & Kinetic compressive impact transduction converting mechanical steps into electrical charge. \\
+Piezoelectric Transducers & 27\,mm PZT-5 Ceramic Brass Diaphragm Discs (8 Discs from 15-Pack) & Kinetic compressive impact transduction converting mechanical steps into electrical charge. \\
 \rowcolor{white}
-Bridge Rectifier & Schottky Diode Bridge (4$\times$ 1N5819, $V_F \approx 0.35\,\text{V}$) & Full-wave AC-to-DC rectification with ultra-low forward voltage loss. \\
+Bridge Rectifier \& Diodes & Integrated Silicon Bridge Rectifier \& 1N4007 Diodes & Full-wave AC-to-DC rectification and reverse-current isolation protection. \\
 \rowcolor{lightgrey}
-Energy Storage Buffer & 0.1\,F / 5.5\,V Supercapacitor (Electric Double-Layer Capacitor) & Electrostatic storage reservoir buffering harvested kinetic footstep energy. \\
+Kinetic Storage Buffer & 5.5\,V Supercapacitor (Electric Double-Layer Capacitor) & Electrostatic storage reservoir capturing rapid kinetic energy bursts without degradation. \\
 \rowcolor{white}
-Overvoltage Protection & 5.1\,V Zener / TVS Clamping Diode (1N4733A) & Shunts excessive transient voltage spikes to ground, protecting supercapacitor and ADC inputs. \\
+System Power Battery & 12\,V 1.3\,Ah Rechargeable Battery & Uninterruptible DC bus power for ESP32, I$^2$C LCD, and auxiliary load operation. \\
+\rowcolor{lightgrey}
+Overvoltage Protection & 5.1\,V Zener / TVS Clamping Diode \& Protection Meter & Shunts excessive transient voltage spikes and monitors system power parameters. \\
+\rowcolor{white}
+Voltage Boost Converter & XL6009 High-Efficiency DC--DC Step-Up Converter & Steps up accumulated buffer voltage to match system rail requirements. \\
 \rowcolor{lightgrey}
 Voltage Dividers & $100\,\text{k}\Omega / 100\,\text{k}\Omega$ Metal Film Resistors ($2:1$ ratio, 1\% precision) & Attenuates input voltages by half to safely map within the ESP32 $0\text{--}3.3\,\text{V}$ ADC range. \\
 \rowcolor{white}
