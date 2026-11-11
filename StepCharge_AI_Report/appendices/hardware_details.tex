@@ -7,28 +7,30 @@ Table~\ref{tab:esp32_pinout} documents the exact hardware pin assignments utiliz
 \begin{table}[H]
 \centering
 \small
-\renewcommand{\arraystretch}{1.2}
+\renewcommand{\arraystretch}{1.25}
 \caption{ESP32 hardware GPIO pin assignment and peripheral configuration.}
 \label{tab:esp32_pinout}
-\begin{tabular}{|l|c|l|l|}
-\hline
-\textbf{Signal Function} & \textbf{ESP32 Pin} & \textbf{Peripheral / Channel} & \textbf{Circuit Connection} \\
-\hline
+\begin{tabularx}{\textwidth}{@{} L{1.8in} M{1.0in} L{1.8in} Y @{}}
+\toprule
+\rowcolor{iceblue}
+\tableheader{Signal Function} & \tableheader{ESP32 Pin} & \tableheader{Peripheral / Channel} & \tableheader{Circuit Connection / Role} \\
+\midrule
+\rowcolor{white}
 Piezo Pulse Voltage & GPIO 34 & ADC1\_CH6 (Input-only) & Output of 2:1 Harvest Voltage Divider \\
-\hline
+\rowcolor{lightgrey}
 Storage Buffer Voltage & GPIO 35 & ADC1\_CH7 (Input-only) & Output of 2:1 Storage Voltage Divider \\
-\hline
-LED Demo Load Gate & GPIO 25 & Digital Output / RTC\_IO6 & Gate of IRLZ44N MOSFET 1 (LED) \\
-\hline
-DC Fan Demo Load Gate & GPIO 26 & Digital Output / RTC\_IO7 & Gate of IRLZ44N MOSFET 2 (Fan) \\
-\hline
+\rowcolor{white}
+LED Demo Load Gate & GPIO 25 & Digital Output / RTC\_IO6 & Gate of IRLZ44N MOSFET 1 (LED Load) \\
+\rowcolor{lightgrey}
+DC Fan Demo Load Gate & GPIO 26 & Digital Output / RTC\_IO7 & Gate of IRLZ44N MOSFET 2 (Fan Load) \\
+\rowcolor{white}
 Onboard Status LED & GPIO 2 & Digital Output & Wi-Fi Link \& Telemetry Activity Indicator \\
-\hline
+\rowcolor{lightgrey}
 VCC Power Input & 5V / VIN & Power Rail & Regulated 5\,V DC Power Supply \\
-\hline
+\rowcolor{white}
 Ground Reference & GND & System Common Ground & Star Ground for Analog and Power Rails \\
-\hline
-\end{tabular}
+\bottomrule
+\end{tabularx}
 \end{table}
 
 \section{Transducer Matrix Electrical Properties}

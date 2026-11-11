@@ -137,31 +137,33 @@ The hardware specifications required for the physical prototype and testing envi
 \begin{table}[H]
 \centering
 \small
-\renewcommand{\arraystretch}{1.2}
+\renewcommand{\arraystretch}{1.25}
 \caption{Hardware specifications and prototype bill of materials.}
 \label{tab:hardware_resources}
-\begin{tabularx}{\textwidth}{|p{1.4in}|p{2.2in}|p{2.3in}|}
-\hline
-\textbf{Component} & \textbf{Model / Specifications} & \textbf{Functional Role} \\
-\hline
-Microcontroller & Espressif ESP32-WROOM-32D (Dual-Core, 240\,MHz, 520\,KB SRAM, Wi-Fi/BLE) & Edge acquisition, digital filtering, Schmitt trigger detection, HTTPS telemetry. \\
-\hline
-Piezoelectric Transducers & 35\,mm PZT-5 Ceramic Brass Diaphragm Discs (Quantity: 8) & Kinetic compressive impact transduction into electrical charge. \\
-\hline
-Bridge Rectifier & Schottky Diode Bridge (1N5819, $V_F \approx 0.35\,\text{V}$) & Full-wave AC-to-DC rectification with low forward voltage loss. \\
-\hline
-Energy Storage Buffer & 0.1\,F / 5.5\,V Supercapacitor (Electric Double-Layer Capacitor) & Electrostatic storage reservoir for harvested kinetic energy. \\
-\hline
-Overvoltage Protection & 5.1\,V Zener / TVS Clamping Diode & Clamps excessive voltage spikes to protect the supercapacitor and ADC. \\
-\hline
-Voltage Dividers & $100\,\text{k}\Omega / 100\,\text{k}\Omega$ Metal Film Resistors ($2:1$ ratio, 1\% tolerance) & Attenuates input voltages to match the $0\text{--}3.3\,\text{V}$ ESP32 ADC range. \\
-\hline
-MOSFET Drivers & 2N7000 / IRLZ44N Logic-Level N-Channel MOSFETs & Low-side switching of demonstration loads via ESP32 GPIOs. \\
-\hline
-Demonstration Loads & High-Efficiency 5\,mm Green LED \& 5\,V Miniature DC Brushless Fan & Verification and demonstration of stored energy utilization. \\
-\hline
-Development PC & Intel Core i5/i7 (8-Core), 16\,GB RAM, 512\,GB SSD, Windows 11 & Firmware compilation, local API testing, ML model training. \\
-\hline
+\begin{tabularx}{\textwidth}{@{} L{1.3in} L{2.0in} Y @{}}
+\toprule
+\rowcolor{iceblue}
+\tableheader{Component} & \tableheader{Model / Specifications} & \tableheader{Functional Role in StepCharge AI} \\
+\midrule
+\rowcolor{white}
+Microcontroller & Espressif ESP32-WROOM-32D (Dual-Core, 240\,MHz, 520\,KB SRAM, Wi-Fi/BLE) & Edge signal acquisition, digital filtering, Schmitt trigger detection, and HTTPS telemetry. \\
+\rowcolor{lightgrey}
+Piezoelectric Transducers & 35\,mm PZT-5 Ceramic Brass Diaphragm Discs (Quantity: 8) & Kinetic compressive impact transduction converting mechanical steps into electrical charge. \\
+\rowcolor{white}
+Bridge Rectifier & Schottky Diode Bridge (4$\times$ 1N5819, $V_F \approx 0.35\,\text{V}$) & Full-wave AC-to-DC rectification with ultra-low forward voltage loss. \\
+\rowcolor{lightgrey}
+Energy Storage Buffer & 0.1\,F / 5.5\,V Supercapacitor (Electric Double-Layer Capacitor) & Electrostatic storage reservoir buffering harvested kinetic footstep energy. \\
+\rowcolor{white}
+Overvoltage Protection & 5.1\,V Zener / TVS Clamping Diode (1N4733A) & Shunts excessive transient voltage spikes to ground, protecting supercapacitor and ADC inputs. \\
+\rowcolor{lightgrey}
+Voltage Dividers & $100\,\text{k}\Omega / 100\,\text{k}\Omega$ Metal Film Resistors ($2:1$ ratio, 1\% precision) & Attenuates input voltages by half to safely map within the ESP32 $0\text{--}3.3\,\text{V}$ ADC range. \\
+\rowcolor{white}
+MOSFET Drivers & IRLZ44N / 2N7000 Logic-Level N-Channel MOSFETs & Low-side electronic load switching controlled by ESP32 digital output pins. \\
+\rowcolor{lightgrey}
+Demonstration Loads & High-Efficiency 5\,mm Green LED \& 5\,V Miniature DC Brushless Fan & Visual and mechanical demonstration verifying usable output power delivery. \\
+\rowcolor{white}
+Development PC & Intel Core i5/i7 (8-Core), 16\,GB RAM, 512\,GB SSD, Windows 11 & C++ firmware compilation, REST API unit testing, and ML model training. \\
+\bottomrule
 \end{tabularx}
 \end{table}
 
@@ -171,34 +173,36 @@ The software stack and development tools utilized across the platform are outlin
 \begin{table}[H]
 \centering
 \small
-\renewcommand{\arraystretch}{1.2}
+\renewcommand{\arraystretch}{1.25}
 \caption{Software frameworks, development environments, and toolchain.}
 \label{tab:software_resources}
-\begin{tabularx}{\textwidth}{|p{1.5in}|p{2.2in}|p{2.2in}|}
-\hline
-\textbf{Category} & \textbf{Technology / Library} & \textbf{Version / Purpose} \\
-\hline
-Firmware Toolchain & Arduino IDE / PlatformIO with Espressif ESP32 Core & v2.0.14+; C++ firmware compilation and flashing. \\
-\hline
-Firmware Libraries & \texttt{WiFi.h}, \texttt{HTTPClient.h}, \texttt{ArduinoJson.h} & v7.x; TLS networking and JSON serialization. \\
-\hline
-Backend Runtime & Node.js with TypeScript & v20.x LTS; asynchronous event-driven server. \\
-\hline
-Backend Framework & Express.js & v4.19+; RESTful API routing and middleware. \\
-\hline
-Database \& ODM & MongoDB Atlas with Mongoose ODM & v7.0+; cloud document store and schema validation. \\
-\hline
-Real-Time Engine & Socket.IO & v4.7+; bidirectional WebSocket communication. \\
-\hline
-Machine Learning & Python 3.11+, Scikit-Learn, Pandas, NumPy, Joblib & v1.4+; Random Forest training, evaluation, inference. \\
-\hline
-ML Serving API & FastAPI with Uvicorn ASGI & v0.110+; high-performance HTTP microservice. \\
-\hline
-Frontend Framework & React 19, TypeScript, Vite & v19.0 / Vite 5; modular component architecture. \\
-\hline
-Styling \& Visuals & Tailwind CSS, Lucide React, Recharts & Modern responsive UI, SVG icons, time-series charts. \\
-\hline
-Testing Frameworks & Vitest (Backend), Unittest (ML Service) & 101 automated security and functional unit tests. \\
-\hline
+\begin{tabularx}{\textwidth}{@{} L{1.4in} L{2.0in} Y @{}}
+\toprule
+\rowcolor{iceblue}
+\tableheader{Architectural Tier} & \tableheader{Technology / Framework} & \tableheader{Implementation Purpose / Role} \\
+\midrule
+\rowcolor{white}
+Firmware Toolchain & Arduino IDE / PlatformIO with Espressif ESP32 Core & v2.0.14+; C++ firmware compilation, flash memory partition, and debugging. \\
+\rowcolor{lightgrey}
+Firmware Libraries & \texttt{WiFi.h}, \texttt{HTTPClient.h}, \texttt{ArduinoJson.h} & v7.x; Secure TLS/HTTPS networking, JSON frame serialization, and NTP time sync. \\
+\rowcolor{white}
+Backend Runtime & Node.js with TypeScript & v20.x LTS; Asynchronous event-driven I/O engine with strict static type safety. \\
+\rowcolor{lightgrey}
+Backend Framework & Express.js & v4.19+; RESTful API routing, rate limiting, and cryptographic middleware. \\
+\rowcolor{white}
+Database \& ODM & MongoDB Atlas with Mongoose ODM & v7.0+; Cloud document store with compound indexing for time-series telemetry. \\
+\rowcolor{lightgrey}
+Real-Time Engine & Socket.IO & v4.7+; Bidirectional WebSocket communication streaming live telemetry updates. \\
+\rowcolor{white}
+Machine Learning & Python 3.11+, Scikit-Learn, Pandas, NumPy, Joblib & v1.4+; Feature extraction, Stratified GroupKFold cross-validation, Random Forest training. \\
+\rowcolor{lightgrey}
+ML Serving API & FastAPI with Uvicorn ASGI & v0.110+; High-throughput asynchronous HTTP microservice for sub-20ms inference. \\
+\rowcolor{white}
+Frontend Framework & React 19, TypeScript, Vite & v19.0 / Vite 5; Component hierarchy, reactive store provider, and fast HMR. \\
+\rowcolor{lightgrey}
+Styling \& Visuals & Tailwind CSS, Lucide React, Recharts & Responsive dashboard layout, SVG engineering iconography, and live telemetry charts. \\
+\rowcolor{white}
+Testing Frameworks & Vitest (Backend), Unittest (ML Service) & Automated test harness executing 101 security, boundary, and functional unit tests. \\
+\bottomrule
 \end{tabularx}
 \end{table}

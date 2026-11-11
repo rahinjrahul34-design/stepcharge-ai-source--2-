@@ -9,28 +9,54 @@
 \usepackage{amsmath,amssymb}
 \usepackage{graphicx}
 \usepackage{float}
-\usepackage{array,booktabs,longtable,tabularx,multirow}
+\usepackage{array,booktabs,longtable,tabularx,multirow,makecell}
+\usepackage{ragged2e}
+\usepackage{pdflscape}
 \usepackage{enumitem}
 \usepackage{setspace}
 \usepackage{titlesec}
 \usepackage{fancyhdr}
 \usepackage{caption}
 \usepackage{subcaption}
-\usepackage{tikz}
-\usetikzlibrary{arrows.meta,positioning,shapes.geometric,shapes.misc,fit,calc}
-\usepackage{hyperref}
 \usepackage{xcolor}
-\definecolor{amber}{RGB}{255, 191, 0}
+\usepackage{colortbl}
 \usepackage{url}
 \usepackage{tocloft}
 \usepackage{listings}
 
+% TikZ and graphics libraries
+\usepackage{tikz}
+\usetikzlibrary{arrows.meta,positioning,shapes.geometric,shapes.misc,fit,calc,backgrounds,shadows,decorations.pathreplacing,matrix,patterns}
+
+% Unified Academic Engineering Palette
+\definecolor{deepnavy}{RGB}{20, 45, 78}      % #142D4E - Primary Headings & Dark Elements
+\definecolor{profblue}{RGB}{36, 91, 145}     % #245B91 - Secondary Headings & Accents
+\definecolor{teal}{RGB}{22, 140, 145}        % #168C91 - Sensor & Measurement Elements
+\definecolor{iceblue}{RGB}{234, 242, 248}    % #EAF2F8 - Table Header & Highlight Fills
+\definecolor{lightgrey}{RGB}{243, 245, 247}  % #F3F5F7 - Alternate Row & Box Backgrounds
+\definecolor{darktext}{RGB}{32, 40, 51}      % #202833 - Readable High-Contrast Body Text
+\definecolor{amber}{RGB}{217, 119, 6}        % #D97706 - Energy & Power Highlights
+\definecolor{passgreen}{RGB}{22, 163, 74}    % #16A34A - Verified Test Results
+\definecolor{failred}{RGB}{220, 38, 38}      % #DC2626 - Fault & Error Indicators
+
+% Custom column types for robust non-hyphenated table layout
+\newcolumntype{Y}{>{\RaggedRight\arraybackslash}X}
+\newcolumntype{C}{>{\Centering\arraybackslash}X}
+\newcolumntype{L}[1]{>{\RaggedRight\arraybackslash}p{#1}}
+\newcolumntype{R}[1]{>{\RaggedLeft\arraybackslash}p{#1}}
+\newcolumntype{M}[1]{>{\Centering\arraybackslash}p{#1}}
+
+% Helper commands for table formatting
+\newcommand{\tableheader}[1]{\textbf{\color{deepnavy}#1}}
+\newcommand{\passbadge}{\textcolor{passgreen}{\textbf{PASS}}}
+
 % Hyperref configuration
+\usepackage{hyperref}
 \hypersetup{
     colorlinks=true,
-    linkcolor=black,
-    citecolor=black,
-    urlcolor=blue!70!black,
+    linkcolor=deepnavy,
+    citecolor=profblue,
+    urlcolor=profblue,
     pdftitle={StepCharge AI Preliminary Project Report},
     pdfauthor={[STUDENT NAME 1], [STUDENT NAME 2], [STUDENT NAME 3], [STUDENT NAME 4]}
 }
@@ -44,34 +70,34 @@
 \setlist[enumerate]{leftmargin=0.4in,itemsep=3pt,topsep=3pt}
 
 % Chapter & Section Heading Formats
-\titleformat{\chapter}[display]{\bfseries\centering\Large}{\chaptername\ \thechapter}{8pt}{\Large}
+\titleformat{\chapter}[display]{\bfseries\centering\Large\color{deepnavy}}{\chaptername\ \thechapter}{8pt}{\Large\color{deepnavy}}
 \titlespacing*{\chapter}{0pt}{-10pt}{14pt}
-\titleformat{\section}{\bfseries\large}{\thesection}{0.7em}{}
-\titleformat{\subsection}{\bfseries\normalsize}{\thesubsection}{0.7em}{}
+\titleformat{\section}{\bfseries\large\color{deepnavy}}{\thesection}{0.7em}{}
+\titleformat{\subsection}{\bfseries\normalsize\color{profblue}}{\thesubsection}{0.7em}{}
 
 % Running Headers & Footers
 \pagestyle{fancy}
 \fancyhf{}
-\fancyhead[L]{\small\nouppercase{StepCharge AI: Smart Footstep Energy Harvesting and Monitoring System}}
-\fancyfoot[C]{\thepage}
+\fancyhead[L]{\small\color{darktext}\nouppercase{StepCharge AI: Smart Footstep Energy Harvesting and Monitoring System}}
+\fancyfoot[C]{\color{darktext}\thepage}
 \renewcommand{\headrulewidth}{0.4pt}
 \renewcommand{\footrulewidth}{0pt}
 
 % Captions & Code Listings
-\captionsetup{font=small,labelfont=bf}
+\captionsetup{font=small,labelfont={bf,color=deepnavy}}
 
 \lstset{
-    basicstyle=\ttfamily\scriptsize,
-    keywordstyle=\color{blue!80!black}\bfseries,
-    stringstyle=\color{teal!80!black},
+    basicstyle=\ttfamily\scriptsize\color{darktext},
+    keywordstyle=\color{profblue}\bfseries,
+    stringstyle=\color{teal},
     commentstyle=\color{gray!80}\itshape,
     numbers=left,
     numberstyle=\tiny\color{gray},
     stepnumber=1,
     numbersep=6pt,
-    backgroundcolor=\color{gray!5},
+    backgroundcolor=\color{lightgrey},
     frame=single,
-    rulecolor=\color{black!20},
+    rulecolor=\color{profblue!30},
     breaklines=true,
     breakatwhitespace=true,
     tabsize=2,

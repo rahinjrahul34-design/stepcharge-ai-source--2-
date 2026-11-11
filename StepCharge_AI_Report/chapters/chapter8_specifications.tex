@@ -58,34 +58,37 @@ Table~\ref{tab:bom} outlines the prototype Bill of Materials (BOM), demonstratin
 \begin{table}[H]
 \centering
 \small
-\renewcommand{\arraystretch}{1.2}
+\renewcommand{\arraystretch}{1.25}
 \caption{Comprehensive prototype Bill of Materials (BOM) and cost breakdown.}
 \label{tab:bom}
-\begin{tabular}{|l|l|c|r|r|}
-\hline
-\textbf{Component Description} & \textbf{Part / Specification} & \textbf{Qty} & \textbf{Unit Price (INR)} & \textbf{Total (INR)} \\
-\hline
-Piezoelectric Transducers & 35\,mm PZT-5 Brass Discs & 8 & 35.00 & 280.00 \\
-\hline
-Schottky Barrier Diodes & 1N5819 (40V / 1A, Low $V_F$) & 4 & 5.00 & 20.00 \\
-\hline
-Zener Clamping Diode & 1N4733A (5.1V / 1W) & 1 & 5.00 & 5.00 \\
-\hline
+\begin{tabularx}{\textwidth}{@{} L{1.8in} Y c r r @{}}
+\toprule
+\rowcolor{iceblue}
+\tableheader{Component Description} & \tableheader{Part / Specification} & \tableheader{Qty} & \tableheader{Unit Price (INR)} & \tableheader{Total (INR)} \\
+\midrule
+\rowcolor{white}
+Piezoelectric Transducers & 35\,mm PZT-5 Ceramic Brass Discs & 8 & 35.00 & 280.00 \\
+\rowcolor{lightgrey}
+Schottky Barrier Diodes & 1N5819 (40\,V / 1\,A, Ultra-Low $V_F$) & 4 & 5.00 & 20.00 \\
+\rowcolor{white}
+Zener Clamping Diode & 1N4733A (5.1\,V / 1\,W Transient Clamp) & 1 & 5.00 & 5.00 \\
+\rowcolor{lightgrey}
 Supercapacitor Buffer & 0.1\,F / 5.5\,V EDLC Coin Cell & 1 & 180.00 & 180.00 \\
-\hline
-Precision Metal-Film Resistors & $100\,\text{k}\Omega$, 1\% Metal-Film & 4 & 2.50 & 10.00 \\
-\hline
-Microcontroller Board & ESP32-WROOM-32D DevBoard & 1 & 450.00 & 450.00 \\
-\hline
-Logic-Level MOSFETs & IRLZ44N N-Channel & 2 & 45.00 & 90.00 \\
-\hline
-Demonstration Loads & High-Efficiency LED \& 5V DC Fan & 1 & 120.00 & 120.00 \\
-\hline
-Mechanical Tile Enclosure & Acrylic Plate, Plywood, Silicone & 1 & 850.00 & 850.00 \\
-\hline
-Prototyping PCB \& Connectors & Fr-4 PCB, Terminal Blocks, Wire & 1 & 235.00 & 235.00 \\
-\hline
-\multicolumn{4}{|l|}{\textbf{Total Prototype Cost}} & \textbf{INR 2,240.00} \\
-\hline
-\end{tabular}
+\rowcolor{white}
+Precision Metal-Film Resistors & $100\,\text{k}\Omega$, 1\% Metal-Film Dividers & 4 & 2.50 & 10.00 \\
+\rowcolor{lightgrey}
+Microcontroller Board & ESP32-WROOM-32D Development Board & 1 & 450.00 & 450.00 \\
+\rowcolor{white}
+Logic-Level MOSFETs & IRLZ44N N-Channel Power MOSFETs & 2 & 45.00 & 90.00 \\
+\rowcolor{lightgrey}
+Demonstration Loads & High-Efficiency LED \& 5\,V Miniature Fan & 1 & 120.00 & 120.00 \\
+\rowcolor{white}
+Mechanical Tile Enclosure & Acrylic Plate, Damped Substrate, Silicone & 1 & 850.00 & 850.00 \\
+\rowcolor{lightgrey}
+Prototyping PCB \& Connectors & FR-4 PCB, Terminal Blocks, Jumper Wires & 1 & 235.00 & 235.00 \\
+\midrule
+\rowcolor{iceblue}
+\multicolumn{4}{@{}l}{\textbf{\color{deepnavy}Total Comprehensive Prototype Cost}} & \textbf{\color{deepnavy}INR 2,240.00} \\
+\bottomrule
+\end{tabularx}
 \end{table}

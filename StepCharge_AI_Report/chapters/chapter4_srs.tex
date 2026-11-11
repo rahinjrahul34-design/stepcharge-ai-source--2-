@@ -190,16 +190,16 @@ The development of StepCharge AI adopted the Agile Software Development Life Cyc
 \centering
 \begin{tikzpicture}[
     scale=0.9, every node/.style={scale=0.9},
-    stage/.style={rectangle, rounded corners=8pt, draw=black!80, thick, fill=blue!10, align=center, minimum width=2.8cm, minimum height=1.0cm, font=\bfseries\small},
-    arrow/.style={-{Latex[length=3mm]}, thick, draw=blue!80!black}
+    stage/.style={rectangle, rounded corners=8pt, draw=deepnavy, thick, fill=white, align=center, minimum width=2.9cm, minimum height=1.0cm, font=\bfseries\scriptsize\color{deepnavy}},
+    arrow/.style={-{Latex[length=3mm]}, thick, draw=profblue}
 ]
     % Circular layout of Agile Sprints
-    \node (plan) at (90:3.5cm) [stage, fill=red!15] {1. Planning \&\\Requirements};
-    \node (design) at (30:3.5cm) [stage, fill=orange!15] {2. Architecture\\\& Design};
-    \node (dev) at (330:3.5cm) [stage, fill=yellow!20] {3. Hardware \&\\Code Sprint};
-    \node (test) at (270:3.5cm) [stage, fill=green!15] {4. Integrated\\Testing};
-    \node (deploy) at (210:3.5cm) [stage, fill=cyan!15] {5. Cloud Deploy\\\& Calibration};
-    \node (review) at (150:3.5cm) [stage, fill=purple!15] {6. Review \&\\Sprint Retrospective};
+    \node (plan) at (90:3.5cm) [stage, fill=iceblue] {1. Planning \&\\Requirements Analysis};
+    \node (design) at (30:3.5cm) [stage, fill=lightgrey] {2. Architecture \&\\Circuit Design};
+    \node (dev) at (330:3.5cm) [stage, fill=amber!15] {3. Hardware \&\\Firmware Sprint};
+    \node (test) at (270:3.5cm) [stage, fill=teal!15] {4. Integrated Testing\\(101 Unit Tests)};
+    \node (deploy) at (210:3.5cm) [stage, fill=iceblue] {5. Cloud Deployment\\\& Live Calibration};
+    \node (review) at (150:3.5cm) [stage, fill=lightgrey] {6. Sprint Review \&\\Report Synthesis};
 
     % Circular connecting arrows
     \draw [arrow] (plan) to [bend left=20] (design);
@@ -210,7 +210,7 @@ The development of StepCharge AI adopted the Agile Software Development Life Cyc
     \draw [arrow] (review) to [bend left=20] (plan);
 
     % Central label
-    \node at (0,0) [circle, draw=black!70, thick, fill=gray!10, align=center, inner sep=6pt, font=\bfseries] {AGILE\\SDLC\\Sprint Cycle};
+    \node at (0,0) [circle, draw=deepnavy, line width=1.2pt, fill=white, align=center, inner sep=7pt, font=\bfseries\small\color{deepnavy}] {AGILE\\SDLC\\Sprint Cycle};
 \end{tikzpicture}
 \caption{The iterative Agile Software Development Life Cycle (SDLC) model applied to StepCharge AI.}
 \label{fig:agile_model}

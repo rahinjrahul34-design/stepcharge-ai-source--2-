@@ -61,32 +61,37 @@ Table~\ref{tab:literature_comparison} synthesizes key experimental approaches re
 
 \section{Comparative Analysis}
 
-\begin{table}[H]
+\begin{landscape}
+\begin{table}[p]
 \centering
 \small
-\renewcommand{\arraystretch}{1.2}
-\caption{Comparative analysis of existing footstep energy harvesting and monitoring systems.}
+\renewcommand{\arraystretch}{1.25}
+\caption{Comprehensive comparative analysis of footstep energy harvesting and monitoring systems in published literature versus StepCharge AI.}
 \label{tab:literature_comparison}
-\begin{tabularx}{\textwidth}{|p{1.1in}|p{0.9in}|p{0.9in}|p{0.8in}|p{1.1in}|p{1.2in}|}
-\hline
-\textbf{Study / Author} & \textbf{Transducer} & \textbf{Storage / Yield} & \textbf{IoT / Cloud} & \textbf{Machine Learning} & \textbf{Key Limitations} \\
-\hline
-Kymissis et al. (1998)~\cite{kymissis1998parasitic} & PZT \& PVDF in shoe & Capacitor, $\approx 80\,\text{mJ}$ peak & None (Analog) & None & Brittle ceramic, mechanical fatigue, no data logging. \\
-\hline
-Paradiso \& Starner (2005)~\cite{paradiso2005energy} & Piezo \& EM scavengers & Various micro-buffers & None & None & Theoretical survey; lack of unified cloud architecture. \\
-\hline
-Sodano et al. (2004)~\cite{sodano2004estimation} & PZT cantilever beam & Rechargeable NiMH cell & None & None & Benchtop vibration shaker; not adapted to human gait. \\
-\hline
-Sravani et al. (2020)~\cite{sravani2020piezoelectric} & PZT flooring tile array & Direct LED output & None & None & No energy storage buffer, no microcontroller, zero data. \\
-\hline
-Shen et al. (2018)~\cite{shen2018iot} & Current / Environmental & Grid-powered IoT nodes & Edge Gateway / Cloud & Statistical anomaly & Monitors conventional power; no energy harvesting. \\
-\hline
-Chen et al. (2019)~\cite{chen2019gait} & Wearable IMUs \& Force plates & External battery pack & Bluetooth to PC & SVM / k-NN gait classification & Intrusive wearable sensors; no energy harvesting. \\
-\hline
-\textbf{StepCharge AI (Proposed)} & \textbf{PZT ceramic tile array} & \textbf{0.1\,F / 5.5\,V Supercap; dual-divider} & \textbf{ESP32 Wi-Fi, Node.js, MongoDB, Socket.IO} & \textbf{Random Forest, Group $K$-Fold, 5 temporal features} & \textbf{Direct voltage sensing; honest physical provenance.} \\
-\hline
+\begin{tabularx}{\linewidth}{@{} L{1.3in} L{1.2in} L{1.3in} L{1.3in} L{1.4in} Y @{}}
+\toprule
+\rowcolor{iceblue}
+\tableheader{Study / Reference} & \tableheader{Transducer Matrix} & \tableheader{Storage / Yield} & \tableheader{Telemetry / IoT Tier} & \tableheader{Machine Learning} & \tableheader{Key Technical Limitations} \\
+\midrule
+\rowcolor{white}
+Kymissis et al. (1998)~\cite{kymissis1998parasitic} & PZT ceramic \& PVDF foil in shoe insole & Electrolytic capacitor, $\approx 80\,\text{mJ}$ peak per stride & None (purely analog load circuit) & None & Ceramic element fragility under repetitive mechanical shear; no telemetry, data logging, or digital instrumentation. \\
+\rowcolor{lightgrey}
+Paradiso \& Starner (2005)~\cite{paradiso2005energy} & Survey of piezoelectric \& electromagnetic scavengers & Various micro-scale storage buffers & None (isolated wireless beacons only) & None & Theoretical paradigm survey; absence of an integrated, end-to-end cyber-physical IoT architecture. \\
+\rowcolor{white}
+Sodano et al. (2004)~\cite{sodano2004estimation} & Unimorph PZT cantilever beam & Rechargeable NiMH button cell & None & None & Benchtop evaluation on mechanical shaker tables; not adapted to dynamic distributed human footsteps. \\
+\rowcolor{lightgrey}
+Sravani et al. (2020)~\cite{sravani2020piezoelectric} & PZT ceramic discs in tile configuration & Direct bridge to LED output & None & None & Lacks energy storage buffer and microcontroller; zero telemetry or analytical intelligence. \\
+\rowcolor{white}
+Shen et al. (2018)~\cite{shen2018iot} & Current transformer \& environmental sensors & Grid-powered IoT nodes & Edge Gateway / Cloud API & Statistical time-series anomaly detection & Monitors conventional commercial building power grids; possesses no kinetic energy harvesting capability. \\
+\rowcolor{lightgrey}
+Chen et al. (2019)~\cite{chen2019gait} & Wearable IMUs \& biometric force plates & External lithium-polymer battery pack & Bluetooth Low Energy to PC workstation & SVM and $k$-NN gait classification & Highly intrusive wearable sensors requiring patient compliance; no self-powered kinetic scavenging. \\
+\midrule
+\rowcolor{iceblue}
+\textbf{StepCharge AI (Proposed)} & \textbf{8$\times$ PZT-5 Ceramic Brass Diaphragm Discs} & \textbf{0.1\,F / 5.5\,V Supercap; dual resistive dividers} & \textbf{ESP32 dual-core Wi-Fi, Node.js REST, MongoDB, Socket.IO} & \textbf{Random Forest (100 trees), Group $K$-Fold CV, 5 temporal features} & \textbf{Resolves all gaps: direct voltage sensing, closed-loop GPIO readback, and strict physical provenance.} \\
+\bottomrule
 \end{tabularx}
 \end{table}
+\end{landscape}
 
 \section{Research Gaps}
 A critical analysis of the surveyed literature reveals five prominent research gaps:

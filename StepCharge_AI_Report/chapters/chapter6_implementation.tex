@@ -108,7 +108,7 @@ io.to(`device:${deviceId}`).emit('telemetry:update', {
 \end{lstlisting}
 
 \section{Machine Learning Implementation}
-The machine learning pipeline is implemented in Python 3.11 using Scikit-Learn v1.4 and served via FastAPI. The classifier is an ensemble Random Forest (\texttt{RandomForestClassifier}) configured with 100 decision trees, balanced class weighting, and a maximum tree depth of 12 to prevent overfitting.
+The machine learning pipeline is implemented in Python 3.11 using Scikit-Learn v1.4 and served via FastAPI. The classifier is an ensemble Random Forest model (\texttt{RandomForest}\-\texttt{Classifier}) configured with 100 decision trees, balanced class weighting, and a maximum tree depth of 12 to prevent overfitting.
 
 \section{Data Preprocessing and Feature Extraction}
 When a footstep occurs, the system extracts a 5-dimensional physical feature vector:
@@ -123,7 +123,7 @@ When a footstep occurs, the system extracts a 5-dimensional physical feature vec
 Physical plausibility bounds are strictly enforced. Samples with $V_{\text{peak}} > 60\,\text{V}$, $V_{\text{avg}} > V_{\text{peak}}$, or $T_{\text{pulse}} < 1.0\,\text{ms}$ are flagged as sensor faults and rejected.
 
 \section{Footstep Classification and Subject-Independent Validation}
-To eliminate gait identity memorization, model training enforces \texttt{StratifiedGroupKFold} cross-validation ($k = 5$), grouping samples by participant identifier (\texttt{participantId}). This guarantees that all footsteps from any given participant are isolated strictly within either the training partition or the testing partition, preventing identity leakage.
+To eliminate gait identity memorization, model training enforces \texttt{Stratified}\-\texttt{GroupKFold} cross-validation ($k = 5$), grouping samples by participant identifier (\texttt{participantId}). This guarantees that all footsteps from any given participant are isolated strictly within either the training partition or the testing partition, preventing identity leakage.
 
 \section{React Dashboard Implementation}
 The client dashboard is developed using React 19, TypeScript, and Tailwind CSS. The application architecture features:

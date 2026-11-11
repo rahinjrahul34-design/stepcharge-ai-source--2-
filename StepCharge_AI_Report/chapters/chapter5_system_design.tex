@@ -1,51 +1,74 @@
 \chapter{System Design}
 
 \section{System Architecture}
-The system architecture of \textbf{StepCharge AI} follows an end-to-end cyber-physical design structured into five decoupled operational tiers: Edge Hardware, Embedded Firmware, Cloud Backend, Machine Learning Microservice, and Presentation Client. Figure~\ref{fig:system_architecture} illustrates the architectural topology and multi-protocol dataflow connecting physical footstep impacts to real-time client visualization.
+The system architecture of \textbf{StepCharge AI} follows an end-to-end cyber-physical design structured into four decoupled operational tiers: Physical Harvesting \& Edge Hardware, Embedded Firmware \& Sensing, Cloud Backend \& Data Persistence, and Machine Learning Analytics \& Presentation Clients. Figure~\ref{fig:system_architecture} illustrates the architectural topology and multi-protocol dataflow connecting physical footstep impacts to real-time client visualization.
 
 \begin{figure}[H]
 \centering
 \begin{tikzpicture}[
-    scale=0.85, every node/.style={scale=0.85},
-    node distance=1.5cm,
-    block/.style={rectangle, rounded corners=6pt, draw=black!80, thick, fill=blue!8, align=center, minimum width=3.2cm, minimum height=1.0cm, font=\small},
-    subblock/.style={rectangle, rounded corners=4pt, draw=black!70, fill=white, align=center, minimum width=2.8cm, minimum height=0.75cm, font=\footnotesize},
-    container/.style={rectangle, rounded corners=8pt, draw=black!60, dashed, thick, fill=gray!5, inner sep=12pt},
-    arrow/.style={-{Latex[length=2.5mm]}, thick, draw=blue!80!black},
-    darrow/.style={{Latex[length=2mm]}-{Latex[length=2mm]}, thick, draw=purple!80!black}
+    scale=0.88, every node/.style={scale=0.88},
+    tierbg/.style={rectangle, rounded corners=8pt, draw=gray!30, fill=lightgrey, minimum height=1.95cm, inner sep=6pt},
+    hwblock/.style={rectangle, rounded corners=5pt, draw=amber!80!black, thick, fill=amber!10, align=center, minimum width=3.4cm, minimum height=1.05cm, font=\small},
+    embblock/.style={rectangle, rounded corners=5pt, draw=teal!80!black, thick, fill=teal!10, align=center, minimum width=3.4cm, minimum height=1.05cm, font=\small},
+    cloudblock/.style={rectangle, rounded corners=5pt, draw=profblue, thick, fill=iceblue, align=center, minimum width=3.4cm, minimum height=1.05cm, font=\small},
+    mlblock/.style={rectangle, rounded corners=5pt, draw=deepnavy, thick, fill=white, align=center, minimum width=4.2cm, minimum height=1.05cm, font=\small},
+    flowenergy/.style={-{Latex[length=2.5mm]}, draw=amber!90!black, line width=1.4pt},
+    flowtelem/.style={-{Latex[length=2.5mm]}, draw=teal!80!black, line width=1.2pt},
+    flowctrl/.style={{Latex[length=2mm]}-{Latex[length=2mm]}, draw=profblue, line width=1.0pt},
+    flowdata/.style={{Latex[length=2mm]}-{Latex[length=2mm]}, draw=deepnavy, line width=1.0pt},
+    flowws/.style={-{Latex[length=2.5mm]}, draw=passgreen, line width=1.2pt},
+    lbl/.style={fill=white, draw=gray!30, rounded corners=2pt, font=\scriptsize\bfseries, inner sep=2pt}
 ]
-    % Edge Hardware Tier
-    \node (piezo) [block, fill=teal!15] {\textbf{Piezo Tile Array}\\(8$\times$ PZT-5 Discs)};
-    \node (rect) [block, fill=teal!15, right=1.0cm of piezo] {\textbf{Schottky Rectifier}\\\& 5.1V Zener Clamp};
-    \node (cap) [block, fill=teal!15, right=1.0cm of rect] {\textbf{Supercapacitor}\\(0.1F / 5.5V Buffer)};
 
-    % Embedded Tier
-    \node (esp) [block, fill=amber!15, below=1.8cm of rect] {\textbf{ESP32 Microcontroller}\\Core 0: Wi-Fi / HTTPS\\Core 1: 50Hz ADC \& Filter};
-    \node (loads) [block, fill=teal!15, right=1.0cm of esp] {\textbf{Demonstration Loads}\\LED / DC Fan (MOSFETs)};
+    % Background Tier Bands (width = 14.8cm, centered at x = 0)
+    \node at (0, 7.8) [tierbg, minimum width=15.0cm] {};
+    \node at (0, 5.2) [tierbg, minimum width=15.0cm] {};
+    \node at (0, 2.6) [tierbg, minimum width=15.0cm] {};
+    \node at (0, 0.0) [tierbg, minimum width=15.0cm] {};
 
-    % Cloud Backend Tier
-    \node (backend) [block, fill=blue!15, below=1.8cm of esp] {\textbf{Node.js + Express API}\\(:5000) REST / Auth};
-    \node (mongo) [block, fill=green!15, left=1.2cm of backend] {\textbf{MongoDB Atlas}\\Time-Series Database};
-    \node (socket) [block, fill=cyan!15, right=1.2cm of backend] {\textbf{Socket.IO Gateway}\\Real-Time Broadcaster};
+    % Tier Header Badges (Top-Left of each band)
+    \node at (-7.2, 8.5) [anchor=west, font=\scriptsize\bfseries\color{amber!90!black}] {TIER 1: PHYSICAL HARVESTING};
+    \node at (-7.2, 5.9) [anchor=west, font=\scriptsize\bfseries\color{teal!80!black}] {TIER 2: EMBEDDED SENSING};
+    \node at (-7.2, 3.3) [anchor=west, font=\scriptsize\bfseries\color{profblue}] {TIER 3: CLOUD BACKEND};
+    \node at (-7.2, 0.7) [anchor=west, font=\scriptsize\bfseries\color{deepnavy}] {TIER 4: PRESENTATION \& ANALYTICS};
 
-    % ML and Frontend Tier
-    \node (ml) [block, fill=purple!15, below=1.8cm of mongo] {\textbf{FastAPI ML Service}\\(:8000) Random Forest};
-    \node (frontend) [block, fill=orange!15, below=1.8cm of socket] {\textbf{React 19 Dashboard}\\(:5173) Live Telemetry};
+    % TIER 1: Physical Harvesting (y = 7.7)
+    \node (piezo) [hwblock] at (-4.8, 7.7) {\textbf{Piezoelectric Array}\\(8$\times$ PZT-5 Discs)};
+    \node (rect) [hwblock] at (0.0, 7.7) {\textbf{Schottky Rectifier}\\(4$\times$ 1N5819 + Zener)};
+    \node (cap) [hwblock] at (4.8, 7.7) {\textbf{Supercapacitor}\\(0.1\,F / 5.5\,V EDLC)};
 
-    % Connecting Arrows
-    \draw [arrow] (piezo) -- node [above, font=\scriptsize] {AC Kinetic} (rect);
-    \draw [arrow] (rect) -- node [above, font=\scriptsize] {DC Charge} (cap);
-    \draw [arrow] (rect) |- node [left, pos=0.7, font=\scriptsize] {Pulse (GPIO 34)} (esp);
-    \draw [arrow] (cap) |- node [right, pos=0.7, font=\scriptsize] {Storage (GPIO 35)} (esp);
-    \draw [darrow] (esp) -- node [above, font=\scriptsize] {Gate / Readback} (loads);
+    % TIER 2: Embedded Firmware (y = 5.1)
+    \node (dividers) [embblock] at (-4.8, 5.1) {\textbf{Dual Dividers (2:1)}\\Pulse \& Storage Taps};
+    \node (esp) [embblock] at (0.0, 5.1) {\textbf{ESP32 SoC (240\,MHz)}\\Dual-Core ADC1 / Wi-Fi};
+    \node (loads) [embblock] at (4.8, 5.1) {\textbf{Closed-Loop Loads}\\MOSFETs: LED \& Fan};
 
-    \draw [arrow] (esp) -- node [right, font=\scriptsize] {HTTPS Telemetry / Keys} (backend);
-    \draw [darrow] (backend) -- node [above, font=\scriptsize] {Mongoose ODM} (mongo);
-    \draw [arrow] (backend) -- node [above, font=\scriptsize] {Telemetry Events} (socket);
+    % TIER 3: Cloud Backend (y = 2.5)
+    \node (mongo) [cloudblock] at (-4.8, 2.5) {\textbf{MongoDB Atlas}\\Time-Series Documents};
+    \node (backend) [cloudblock] at (0.0, 2.5) {\textbf{Node.js + Express API}\\REST / Auth Middleware};
+    \node (socket) [cloudblock] at (4.8, 2.5) {\textbf{Socket.IO Engine}\\Real-Time Broadcaster};
 
-    \draw [darrow] (backend) |- node [above, pos=0.7, font=\scriptsize] {POST /predict} (ml);
-    \draw [arrow] (socket) -- node [right, font=\scriptsize] {WSS / Event Stream} (frontend);
-    \draw [darrow] (frontend) -| node [below, pos=0.25, font=\scriptsize] {REST Commands / Google Auth} (backend);
+    % TIER 4: ML & Client (y = -0.1)
+    \node (ml) [mlblock] at (-3.2, -0.1) {\textbf{FastAPI ML Service}\\Random Forest Classifier (:8000)};
+    \node (frontend) [mlblock] at (3.2, -0.1) {\textbf{React 19 Dashboard}\\Live SVG Charts \& Controls (:5173)};
+
+    % Connecting Dataflows - Tier 1
+    \draw [flowenergy] (piezo) -- (rect);
+    \draw [flowenergy] (rect) -- (cap);
+
+    % Inter-tier Connections (Energy to Dividers)
+    \draw [flowenergy] (rect.south) -- ++(0, -0.45) -| (dividers.north);
+    \draw [flowtelem] (dividers) -- (esp);
+    \draw [flowctrl] (esp) -- (loads);
+
+    % Tier 2 to Tier 3
+    \draw [flowtelem] (esp) -- node [lbl, midway, right] {HTTPS Telemetry} (backend);
+    \draw [flowdata] (backend) -- (mongo);
+    \draw [flowws] (backend) -- (socket);
+
+    % Tier 3 to Tier 4
+    \draw [flowdata] (backend.south) -- ++(0, -0.65) -| node [pos=0.25, lbl, above] {POST /predict} (ml.north);
+    \draw [flowws] (socket.south) -- ++(0, -0.65) -| node [pos=0.25, lbl, above] {WSS WebSockets} (frontend.north);
+    \draw [flowctrl] (frontend.north) -- (backend.south -| frontend.north) node [lbl, midway, right] {REST / OAuth};
 
 \end{tikzpicture}
 \caption{Overall StepCharge AI multi-tier cyber-physical system architecture.}
@@ -60,32 +83,57 @@ The hardware subsystem integrates kinetic energy harvesting, analog conditioning
 \begin{figure}[H]
 \centering
 \begin{tikzpicture}[
-    scale=0.88, every node/.style={scale=0.88},
-    block/.style={rectangle, rounded corners=5pt, draw=black!80, thick, fill=blue!8, align=center, minimum width=2.8cm, minimum height=0.9cm, font=\small},
-    arrow/.style={-{Latex[length=2.5mm]}, thick, draw=black!80}
+    scale=0.86, every node/.style={scale=0.86},
+    hwblock/.style={rectangle, rounded corners=5pt, draw=amber!80!black, thick, fill=amber!10, align=center, minimum width=2.7cm, minimum height=0.95cm, font=\small},
+    divblock/.style={rectangle, rounded corners=5pt, draw=teal!80!black, thick, fill=teal!10, align=center, minimum width=3.0cm, minimum height=0.95cm, font=\small},
+    espblock/.style={rectangle, rounded corners=6pt, draw=profblue, thick, fill=iceblue, align=center, minimum width=10.2cm, minimum height=1.25cm, font=\small},
+    mosblock/.style={rectangle, rounded corners=5pt, draw=deepnavy, thick, fill=lightgrey, align=center, minimum width=3.4cm, minimum height=0.95cm, font=\small},
+    arrow/.style={-{Latex[length=2.5mm]}, thick, draw=deepnavy},
+    energyarrow/.style={-{Latex[length=2.5mm]}, line width=1.3pt, draw=amber!80!black},
+    readbackarrow/.style={{Latex[length=2mm]}-{Latex[length=2mm]}, thick, dashed, draw=teal!80!black},
+    lbl/.style={fill=white, draw=gray!30, rounded corners=2pt, font=\scriptsize\bfseries, inner sep=2pt}
 ]
-    \node (p1) [block, fill=teal!15] {PZT Array\\(8 Ceramic Discs)};
-    \node (rec) [block, fill=cyan!15, right=1.0cm of p1] {Schottky Bridge\\(1N5819 $\times$4)};
-    \node (tvs) [block, fill=red!15, right=1.0cm of rec] {Zener Clamp\\(5.1V TVS)};
-    \node (cap) [block, fill=teal!20, right=1.0cm of tvs] {Supercapacitor\\(0.1F / 5.5V)};
 
-    \node (div1) [block, fill=yellow!15, below=1.2cm of rec] {Pulse Divider\\(2:1 Ratio)};
-    \node (div2) [block, fill=yellow!15, below=1.2cm of cap] {Storage Divider\\(2:1 Ratio)};
+    % Row 1: Harvesting Components (y = 5.2) - 4.0cm horizontal pitch
+    \node (p1) [hwblock] at (0.0, 5.2) {\textbf{PZT-5 Array}\\(8 Ceramic Discs)};
+    \node (rec) [hwblock] at (4.0, 5.2) {\textbf{Schottky Bridge}\\(4$\times$ 1N5819)};
+    \node (tvs) [hwblock] at (8.0, 5.2) {\textbf{Zener Clamp}\\(5.1\,V TVS Diode)};
+    \node (cap) [hwblock] at (12.0, 5.2) {\textbf{Supercapacitor}\\(0.1\,F / 5.5\,V Buffer)};
 
-    \node (esp) [block, fill=amber!20, minimum width=5.5cm, below=1.2cm of div1, xshift=2.0cm] {\textbf{Espressif ESP32-WROOM-32D}\\ADC1\_CH6 (GPIO 34) $\cdot$ ADC1\_CH7 (GPIO 35)\\GPIO 25 (LED Gate) $\cdot$ GPIO 26 (Fan Gate)};
+    % Row 2: Precision Voltage Dividers (y = 3.5) - Perfectly aligned under Rectifier and Supercap
+    \node (div1) [divblock] at (4.0, 3.5) {\textbf{Pulse Divider (2:1)}\\$100\,\text{k}\Omega / 100\,\text{k}\Omega$};
+    \node (div2) [divblock] at (12.0, 3.5) {\textbf{Storage Divider (2:1)}\\$100\,\text{k}\Omega / 100\,\text{k}\Omega$};
 
-    \node (mos) [block, fill=orange!15, below=1.2cm of esp] {MOSFET Drivers\\(IRLZ44N $\times$2)};
-    \node (load) [block, fill=green!15, right=1.0cm of mos] {Demonstration Loads\\LED \& 5V DC Fan};
+    % Row 3: ESP32 Microcontroller Centered under both dividers (y = 1.3)
+    \node (esp) [espblock] at (8.0, 1.3) {
+        \textbf{Espressif ESP32-WROOM-32D Dual-Core SoC (240\,MHz)}\\[2pt]
+        ADC1\_CH6 (GPIO 34: Pulse) $\qquad\qquad\qquad$ ADC1\_CH7 (GPIO 35: Storage)\\[2pt]
+        GPIO 25 (LED Gate / Readback) $\quad\cdot\quad$ GPIO 26 (Fan Gate / Readback)
+    };
 
-    \draw [arrow] (p1) -- (rec);
-    \draw [arrow] (rec) -- (tvs);
-    \draw [arrow] (tvs) -- (cap);
+    % Row 4: MOSFET Switching & Demonstration Loads (y = -1.2) - 8.0cm apart!
+    \node (mos) [mosblock] at (4.0, -1.2) {\textbf{MOSFET Drivers}\\(2$\times$ IRLZ44N Logic-Level)};
+    \node (load) [hwblock] at (12.0, -1.2) {\textbf{Demonstration Loads}\\LED (Green) \& 5\,V DC Fan};
+
+    % Energy Arrows (Row 1)
+    \draw [energyarrow] (p1) -- (rec);
+    \draw [energyarrow] (rec) -- (tvs);
+    \draw [energyarrow] (tvs) -- (cap);
+
+    % Divider Input Taps
     \draw [arrow] (rec) -- (div1);
     \draw [arrow] (cap) -- (div2);
-    \draw [arrow] (div1) -- (esp.north -| div1);
-    \draw [arrow] (div2) -- (esp.north -| div2);
-    \draw [arrow] (esp) -- (mos);
-    \draw [arrow] (mos) -- (load);
+
+    % Direct Non-Dangling Routing into ESP32 Top Edge
+    \draw [arrow] (div1) -- (4.0, 1.95) node [pos=0.35, right, font=\tiny\bfseries] {GPIO 34};
+    \draw [arrow] (div2) -- (12.0, 1.95) node [pos=0.35, right, font=\tiny\bfseries] {GPIO 35};
+
+    % Load Drive Controls
+    \draw [arrow] (4.0, 0.65) -- (mos) node [lbl, midway, right] {Gate Signals};
+    \draw [arrow] (mos) -- (load) node [lbl, midway, above] {Switched DC Power};
+
+    % Closed-Loop Readback from Bottom of Loads to ESP32
+    \draw [readbackarrow] (load.south) -- ++(0, -0.6) -| node [pos=0.25, lbl, below] {Closed-Loop Voltage Readback} (esp.south);
 
 \end{tikzpicture}
 \caption{Detailed hardware block diagram of the StepCharge AI edge harvesting node.}
@@ -101,46 +149,72 @@ Because piezoelectric transducers generate bipolar alternating current (AC), rec
 \begin{figure}[H]
 \centering
 \begin{tikzpicture}[
-    scale=0.88, every node/.style={scale=0.88},
-    circuit/.style={draw=black!80, thick},
-    comp/.style={rectangle, draw=black!80, thick, fill=white, align=center, inner sep=4pt, font=\scriptsize}
+    scale=0.80, every node/.style={scale=0.80},
+    wire/.style={draw=deepnavy, line width=1.1pt},
+    comp/.style={rectangle, draw=deepnavy, thick, fill=white, align=center, inner sep=3.5pt, font=\scriptsize},
+    nodept/.style={circle, fill=deepnavy, inner sep=2.0pt},
+    term/.style={rectangle, draw=profblue, fill=iceblue, thick, rounded corners=3pt, font=\scriptsize\bfseries, inner sep=3.5pt},
+    gnd/.style={draw=deepnavy, thick}
 ]
-    % Input from Piezo
-    \draw [circuit] (0,2) node[left] {Piezo (+)} -- (1.5,2);
-    \draw [circuit] (0,0) node[left] {Piezo (-)} -- (1.5,0);
 
-    % Bridge Rectifier
-    \draw [circuit] (1.5,1) rectangle (3.5,3) node[pos=0.5, font=\scriptsize, align=center] {Schottky\\Bridge\\(4$\times$ 1N5819)};
-    \draw [circuit] (1.5,2) -- (1.5,1);
-    \draw [circuit] (1.5,0) |- (2.5,1);
+    % Rail Coordinates
+    \def\vrail{3.8}
+    \def\grail{0.4}
 
-    % Rectified Output
-    \draw [circuit] (3.5,2) -- (5.0,2) node[circle, fill=black, inner sep=1.5pt] (p1) {};
-    \draw [circuit] (2.5,1) |- (5.0,0) node[circle, fill=black, inner sep=1.5pt] (g1) {};
+    % Piezo AC Inputs
+    \draw [wire] (0, 2.7) node [left, font=\scriptsize\bfseries] {Piezo (+)} -- (1.5, 2.7);
+    \draw [wire] (0, 1.5) node [left, font=\scriptsize\bfseries] {Piezo ($-$\,)} -- (1.5, 1.5);
 
-    % Zener / TVS Clamp
-    \draw [circuit] (5.0,2) -- (6.0,2) node[circle, fill=black, inner sep=1.5pt] (p2) {};
-    \draw [circuit] (5.0,0) -- (6.0,0) node[circle, fill=black, inner sep=1.5pt] (g2) {};
-    \draw [circuit] (p2) -- (6.0,1.4) node[comp] {5.1V\\Zener} -- (g2);
+    % Schottky Full-Bridge Rectifier Box
+    \draw [wire, fill=amber!10] (1.5, 0.9) rectangle (3.5, 3.3);
+    \node at (2.5, 2.1) [align=center, font=\scriptsize\bfseries\color{deepnavy}] {Schottky\\Bridge\\(4$\times$ 1N5819)};
+    \draw [wire] (1.5, 2.7) -- (1.5, 2.4);
+    \draw [wire] (1.5, 1.5) -- (1.5, 1.8);
 
-    % Supercapacitor
-    \draw [circuit] (6.0,2) -- (8.0,2) node[circle, fill=black, inner sep=1.5pt] (p3) {};
-    \draw [circuit] (6.0,0) -- (8.0,0) node[circle, fill=black, inner sep=1.5pt] (g3) {};
-    \draw [circuit] (p3) -- (8.0,1.4) node[comp] {0.1F\\5.5V} -- (g3);
+    % Positive and Ground Rails
+    \draw [wire] (3.5, 2.7) -- (4.2, 2.7) -- (4.2, \vrail) -- (18.2, \vrail);
+    \draw [wire] (3.5, 1.5) -- (4.2, 1.5) -- (4.2, \grail) -- (18.2, \grail);
 
-    % Voltage Divider to ADC (Storage)
-    \draw [circuit] (8.0,2) -- (10.0,2);
-    \draw [circuit] (10.0,2) -- (10.0,1.4) node[comp] {$R_1$\\$100\text{k}\Omega$} -- (10.0,0.8) node[circle, fill=black, inner sep=1.5pt] (adc2) {} -- (10.0,0.4) node[comp] {$R_2$\\$100\text{k}\Omega$} -- (10.0,0);
-    \draw [circuit] (8.0,0) -- (10.0,0) node[below, font=\scriptsize] {GND};
-    \draw [circuit, -{Latex}] (adc2) -- (11.5,0.8) node[right, font=\scriptsize] {ESP32 GPIO 35 (Storage)};
+    % Ground Symbol
+    \draw [wire] (4.2, \grail) node [nodept] {} -- (4.2, \grail-0.3);
+    \draw [gnd] (3.9, \grail-0.3) -- (4.5, \grail-0.3);
+    \draw [gnd] (4.0, \grail-0.4) -- (4.4, \grail-0.4);
+    \draw [gnd] (4.1, \grail-0.5) -- (4.3, \grail-0.5);
 
-    % Pulse Divider (Tap from Rectified rail)
-    \draw [circuit] (5.0,2) |- (5.0,3.5) -- (6.5,3.5);
-    \draw [circuit] (6.5,3.5) -- (6.5,2.9) node[comp] {$R_3$\\$100\text{k}\Omega$} -- (6.5,2.3) node[circle, fill=black, inner sep=1.5pt] (adc1) {} -- (6.5,1.7) node[comp] {$R_4$\\$100\text{k}\Omega$} -- (6.5,1.2) node[below, font=\scriptsize] {GND};
-    \draw [circuit, -{Latex}] (adc1) -- (8.0,2.3) node[right, font=\scriptsize] {ESP32 GPIO 34 (Pulse)};
+    % Branch 1: Pulse Voltage Divider (x = 4.8)
+    \draw [wire] (4.8, \vrail) node [nodept] {} -- (4.8, 3.1);
+    \node (R3) at (4.8, 2.7) [comp] {$R_3$\\$100\text{k}\Omega$};
+    \draw [wire] (4.8, 2.3) -- (4.8, 1.9) node [nodept] (tap1) {};
+    \node (R4) at (4.8, 1.5) [comp] {$R_4$\\$100\text{k}\Omega$};
+    \draw [wire] (4.8, 1.1) -- (4.8, \grail) node [nodept] {};
+    % Center tap terminal output (x = 5.6 to 7.2)
+    \draw [wire, -{Latex[length=2.5mm]}] (tap1) -- (5.6, 1.9) node [term, right] {GPIO 34};
+
+    % Branch 2: Zener Clamping Diode (x = 10.2) - 3.0cm clear of GPIO 34 terminal!
+    \draw [wire] (10.2, \vrail) node [nodept] {} -- (10.2, 2.5);
+    \node (zener) at (10.2, 2.1) [comp, fill=failred!10] {Zener TVS\\$5.1\,\text{V}$ (1N4733A)};
+    \draw [wire] (10.2, 1.7) -- (10.2, \grail) node [nodept] {};
+
+    % Branch 3: Energy Storage Supercapacitor (x = 13.0) - 2.8cm away from Zener!
+    \draw [wire] (13.0, \vrail) node [nodept] {} -- (13.0, 2.5);
+    \node (supercap) at (13.0, 2.1) [comp, fill=teal!15] {Supercapacitor\\$0.1\,\text{F} / 5.5\,\text{V}$};
+    \draw [wire] (13.0, 1.7) -- (13.0, \grail) node [nodept] {};
+
+    % Branch 4: Storage Voltage Divider (x = 15.6) - 2.6cm away from Supercapacitor!
+    \draw [wire] (15.6, \vrail) node [nodept] {} -- (15.6, 3.1);
+    \node (R1) at (15.6, 2.7) [comp] {$R_1$\\$100\text{k}\Omega$};
+    \draw [wire] (15.6, 2.3) -- (15.6, 1.9) node [nodept] (tap2) {};
+    \node (R2) at (15.6, 1.5) [comp] {$R_2$\\$100\text{k}\Omega$};
+    \draw [wire] (15.6, 1.1) -- (15.6, \grail) node [nodept] {};
+    % Center tap terminal output
+    \draw [wire, -{Latex[length=2.5mm]}] (tap2) -- (16.4, 1.9) node [term, right] {GPIO 35};
+
+    % Rail Labels
+    \node at (18.3, \vrail) [right, font=\scriptsize\bfseries\color{amber!80!black}] {$V_{\text{in}}$};
+    \node at (18.3, \grail) [right, font=\scriptsize\bfseries\color{deepnavy}] {GND};
 
 \end{tikzpicture}
-\caption{Electrical schematic of rectification, clamping, supercapacitor, and divider sensing.}
+\caption{Electrical schematic of rectification, clamping, supercapacitor, and dual-divider sensing.}
 \label{fig:circuit_diagram}
 \end{figure}
 
@@ -176,34 +250,34 @@ The firmware executes a dual-threshold Schmitt trigger to detect valid footsteps
 \begin{figure}[H]
 \centering
 \begin{tikzpicture}[scale=0.9, every node/.style={scale=0.9}]
-    \draw [->, thick] (0,0) -- (9.0,0) node [right] {Time (ms)};
-    \draw [->, thick] (0,0) -- (0,4.2) node [above] {Voltage (V)};
+    \draw [->, thick, draw=deepnavy] (0,0) -- (9.2,0) node [right, font=\scriptsize\bfseries] {Time (ms)};
+    \draw [->, thick, draw=deepnavy] (0,0) -- (0,4.2) node [above, font=\scriptsize\bfseries] {Voltage (V)};
 
     % Threshold lines
-    \draw [dashed, red!80, thick] (0,2.4) -- (8.5,2.4) node [right, font=\scriptsize] {$V_{\text{high}} = 0.80\,\text{V}$ (Rising Trigger)};
-    \draw [dashed, blue!80, thick] (0,1.65) -- (8.5,1.65) node [right, font=\scriptsize] {$V_{\text{low}} = 0.55\,\text{V}$ (Falling Release)};
+    \draw [dashed, failred, thick] (0,2.4) -- (8.5,2.4) node [right, font=\scriptsize\bfseries, color=failred] {$V_{\text{high}} = 0.80\,\text{V}$ (Rising Trigger)};
+    \draw [dashed, profblue, thick] (0,1.65) -- (8.5,1.65) node [right, font=\scriptsize\bfseries, color=profblue] {$V_{\text{low}} = 0.55\,\text{V}$ (Falling Release)};
 
     % Simulated pulse waveform
-    \draw [thick, green!60!black, smooth] plot coordinates {
+    \draw [line width=1.3pt, teal, smooth] plot coordinates {
         (0.5,0.2) (1.2,0.3) (2.0,0.5) (2.4,1.0) (2.8,2.4) (3.2,3.6) (3.8,3.2) (4.4,2.2) (5.0,1.65) (5.6,0.8) (6.2,0.3) (8.0,0.2)
     };
 
     % Detection Points
-    \node at (2.8,2.4) [circle, fill=red, inner sep=2pt] {};
-    \node at (2.8,2.8) [font=\scriptsize, red!80!black] {Pulse Start ($t_{\text{start}}$)};
+    \node at (2.8,2.4) [circle, fill=failred, inner sep=2.2pt] {};
+    \node at (2.8,2.8) [font=\scriptsize\bfseries, color=failred] {Pulse Start ($t_{\text{start}}$)};
 
-    \node at (5.0,1.65) [circle, fill=blue, inner sep=2pt] {};
-    \node at (5.0,1.2) [font=\scriptsize, blue!80!black] {Pulse End ($t_{\text{end}}$)};
+    \node at (5.0,1.65) [circle, fill=profblue, inner sep=2.2pt] {};
+    \node at (5.0,1.2) [font=\scriptsize\bfseries, color=profblue] {Pulse End ($t_{\text{end}}$)};
 
-    \node at (3.2,3.6) [circle, fill=orange, inner sep=2pt] {};
-    \node at (3.2,4.0) [font=\scriptsize, orange!80!black] {Peak ($V_{\text{peak}} = 3.6\,\text{V}$)};
+    \node at (3.2,3.6) [circle, fill=amber, inner sep=2.2pt] {};
+    \node at (3.2,4.0) [font=\scriptsize\bfseries, color=amber!90!black] {Peak ($V_{\text{peak}} = 3.60\,\text{V}$)};
 
     % Duration Bracket
-    \draw [{Latex}-{Latex}, thick] (2.8,0.5) -- (5.0,0.5) node [midway, above, font=\scriptsize] {$T_{\text{pulse}}$};
+    \draw [{Latex}-{Latex}, thick, draw=deepnavy] (2.8,0.5) -- (5.0,0.5) node [midway, above, font=\scriptsize\bfseries] {$T_{\text{pulse}}$};
 
     % Refractory Window
-    \draw [fill=gray!20, opacity=0.5] (5.0,0) rectangle (7.5,4.0);
-    \node at (6.25,2.0) [font=\scriptsize, rotate=90, align=center] {Refractory Lockout\\(250 ms)};
+    \draw [fill=lightgrey, draw=gray!40, dashed] (5.0,0) rectangle (7.5,4.0);
+    \node at (6.25,2.0) [font=\scriptsize\bfseries, color=deepnavy, rotate=90, align=center] {Refractory Lockout\\(250\,ms Bounce Suppression)};
 
 \end{tikzpicture}
 \caption{Schmitt-trigger hysteresis detection waveform and refractory lockout window.}
@@ -211,13 +285,13 @@ The firmware executes a dual-threshold Schmitt trigger to detect valid footsteps
 \end{figure}
 
 \section{IoT Communication Architecture}
-The edge node communicates with the cloud backend via standard TLS-encrypted HTTPS REST protocols. Edge telemetry frames are published every 1000\,ms via \texttt{POST /api/devices/:id/telemetry}. Discrete footsteps are appended via \texttt{POST /api/devices/:id/footsteps}.
+The edge node communicates with the cloud backend via standard TLS-encrypted HTTPS REST protocols. Edge telemetry frames are published every 1000\,ms via \texttt{POST /api/devices/}\discretionary{}{}{}\texttt{:id/telemetry}. Discrete footsteps are appended via \texttt{POST /api/devices/:id/footsteps}.
 
 \section{Backend Architecture}
 The backend service is structured into modular layers:
 \begin{itemize}
-    \item \textbf{Routing Layer:} Express routers handling \texttt{/api/auth}, \texttt{/api/devices}, \texttt{/api/telemetry}, \texttt{/api/alerts}, and \texttt{/api/ml}.
-    \item \textbf{Middleware Layer:} Cryptographic device key validation (\texttt{requireDeviceAuth}), JWT session verification (\texttt{requireAuth}), RBAC enforcement (\texttt{requireAdmin}), rate limiters, and Helmet headers.
+    \item \textbf{Routing Layer:} Express routers handling the REST routes for \texttt{/api/auth}, \texttt{/api/devices}, \texttt{/api/telemetry}, \texttt{/api/alerts}, and \texttt{/api/ml}.
+    \item \textbf{Middleware Layer:} Cryptographic device key validation (\texttt{requireDeviceAuth}), JWT session verification (\texttt{requireAuth}), RBAC authorization (\texttt{requireAdmin}), rate limiters, and Helmet security headers.
     \item \textbf{Service Layer:} Telemetry persistence, health monitoring, and Socket.IO emission.
 \end{itemize}
 
@@ -225,32 +299,57 @@ The backend service is structured into modular layers:
 MongoDB Atlas provides document persistence. Relational integrity is enforced programmatically via Mongoose ODM schemas. The primary entity relationships are shown in Section~\ref{sec:er_diagram}.
 
 \section{Machine Learning Architecture}
-The machine learning architecture runs as an independent Python FastAPI microservice. The model takes a 5-element feature vector and classifies it via a Random Forest model. Figure~\ref{fig:ml_workflow} illustrates the end-to-end training and inference pipeline.
+The machine learning architecture runs as an independent Python FastAPI microservice. The model takes a 5-element feature vector and classifies it via a Random Forest model. Figure~\ref{fig:ml_workflow} illustrates both the offline training pipeline and the online real-time inference workflow.
 
 \begin{figure}[H]
 \centering
 \begin{tikzpicture}[
-    scale=0.88, every node/.style={scale=0.88},
-    stage/.style={rectangle, rounded corners=5pt, draw=black!80, thick, fill=blue!10, align=center, minimum width=2.6cm, minimum height=0.85cm, font=\scriptsize},
-    arrow/.style={-{Latex[length=2.5mm]}, thick, draw=blue!80!black}
+    scale=0.86, every node/.style={scale=0.86},
+    box/.style={rectangle, rounded corners=5pt, draw=deepnavy, thick, fill=white, align=center, text width=2.2cm, minimum height=0.95cm, font=\scriptsize, inner sep=2pt},
+    hlbox/.style={rectangle, rounded corners=5pt, draw=profblue, thick, fill=iceblue, align=center, text width=2.2cm, minimum height=0.95cm, font=\scriptsize\bfseries, inner sep=2pt},
+    group/.style={rectangle, rounded corners=8pt, draw=gray!40, fill=lightgrey, inner sep=8pt},
+    arrow/.style={-{Latex[length=2.2mm]}, thick, draw=deepnavy}
 ]
-    \node (raw) [stage, fill=teal!15] {Raw ADC Pulse\\$\sigma(t)$ at 50\,Hz};
-    \node (filt) [stage, fill=teal!15, right=0.8cm of raw] {Schmitt Detection\\$\&$ Duration Filter};
-    \node (feat) [stage, fill=yellow!15, right=0.8cm of filt] {Feature Vector\\$[V_{\text{pk}}, V_{\text{avg}}, T_p, \Delta T, V_s]$};
-    \node (rf) [stage, fill=purple!15, right=0.8cm of feat] {Random Forest\\(100 Trees)};
-    \node (out) [stage, fill=green!15, right=0.8cm of rf] {Class Prediction\\\& Confidence};
 
-    \node (db) [stage, fill=gray!15, below=1.0cm of feat] {Dataset Repository\\(Stratified GroupKFold)};
+    % Phase A Title and Background
+    \node at (7.0, 4.5) [font=\bfseries\small\color{deepnavy}] {Phase A: Offline Supervised Training \& Validation Pipeline};
+    \draw [group] (-1.6, 2.0) rectangle (15.6, 4.0);
 
-    \draw [arrow] (raw) -- (filt);
-    \draw [arrow] (filt) -- (feat);
-    \draw [arrow] (feat) -- (rf);
-    \draw [arrow] (rf) -- (out);
-    \draw [arrow] (feat) -- (db);
-    \draw [arrow] (db) -| node [pos=0.3, right, font=\tiny] {Trained Model} (rf);
+    % Phase A Components (y = 3.0) - Pitch = 3.5cm, box width = 2.2cm -> 1.3cm gap!
+    \node (dset) [box, fill=amber!15] at (0.0, 3.0) {\textbf{360 Impacts}\\Raw Transients};
+    \node (prep) [box] at (3.5, 3.0) {\textbf{Feature Extract}\\5 Parameters};
+    \node (gkf) [box] at (7.0, 3.0) {\textbf{GroupKFold}\\5-Fold CV};
+    \node (train) [hlbox] at (10.5, 3.0) {\textbf{Random Forest}\\100 Trees};
+    \node (model) [box, fill=passgreen!15] at (14.0, 3.0) {\textbf{Trained Model}\\\texttt{model.joblib}};
+
+    % Phase B Title and Background
+    \node at (7.0, 1.2) [font=\bfseries\small\color{deepnavy}] {Phase B: Online Real-Time Edge-to-Cloud Inference Pipeline};
+    \draw [group] (-1.6, -1.3) rectangle (15.6, 0.7);
+
+    % Phase B Components (y = -0.3)
+    \node (adc) [box, fill=teal!15] at (0.0, -0.3) {\textbf{ADC Stream}\\$\sigma(t)$ at 50\,Hz};
+    \node (schmitt) [box] at (3.5, -0.3) {\textbf{Schmitt Filter}\\Hysteresis Window};
+    \node (feat) [box] at (7.0, -0.3) {\textbf{Feature Vector}\\$[V_{\text{pk}}, V_{\text{avg}}, T_p, \dots]$};
+    \node (fastapi) [hlbox] at (10.5, -0.3) {\textbf{FastAPI Service}\\\texttt{POST /predict}};
+    \node (pred) [box, fill=passgreen!15] at (14.0, -0.3) {\textbf{Class Output}\\Light/Norm/Heavy};
+
+    % Phase A Arrows
+    \draw [arrow] (dset) -- (prep);
+    \draw [arrow] (prep) -- (gkf);
+    \draw [arrow] (gkf) -- (train);
+    \draw [arrow] (train) -- (model);
+
+    % Phase B Arrows
+    \draw [arrow] (adc) -- (schmitt);
+    \draw [arrow] (schmitt) -- (feat);
+    \draw [arrow] (feat) -- (fastapi);
+    \draw [arrow] (fastapi) -- (pred);
+
+    % Model injection arrow (orthogonal path clear of title)
+    \draw [arrow, dashed, draw=profblue, line width=1.1pt] (model.south) -- ++(0, -0.6) -| (fastapi.north) node [pos=0.25, above, font=\tiny\bfseries, color=profblue] {Model Weights Loaded};
 
 \end{tikzpicture}
-\caption{Machine Learning feature extraction, training, and inference workflow.}
+\caption{Decoupled Machine Learning architecture: offline validation and online real-time inference.}
 \label{fig:ml_workflow}
 \end{figure}
 
@@ -266,19 +365,20 @@ Figure~\ref{fig:dfd_level0} illustrates the Level 0 Context DFD representing the
 \centering
 \begin{tikzpicture}[
     scale=0.88, every node/.style={scale=0.88},
-    entity/.style={rectangle, draw=black!80, thick, fill=orange!15, align=center, minimum width=2.5cm, minimum height=1.0cm, font=\small\bfseries},
-    process/.style={circle, draw=black!80, thick, fill=blue!15, align=center, minimum size=3.2cm, font=\small\bfseries},
-    arrow/.style={-{Latex[length=2.5mm]}, thick, draw=black!80}
+    entity/.style={rectangle, draw=deepnavy, thick, fill=iceblue, align=center, minimum width=2.6cm, minimum height=1.1cm, font=\small\bfseries},
+    process/.style={circle, draw=profblue, line width=1.3pt, fill=white, align=center, minimum size=3.4cm, font=\small\bfseries},
+    arrow/.style={-{Latex[length=2.5mm]}, thick, draw=deepnavy},
+    lbl/.style={fill=white, draw=gray!30, rounded corners=2pt, font=\scriptsize, inner sep=2pt}
 ]
     \node (esp) [entity] {ESP32 Edge\\Harvester};
-    \node (sys) [process, right=2.5cm of esp] {StepCharge AI\\Central System\\(Level 0)};
-    \node (user) [entity, right=2.5cm of sys] {Authenticated\\User / Admin};
+    \node (sys) [process, right=2.6cm of esp] {StepCharge AI\\Central Platform\\(Process 0.0)};
+    \node (user) [entity, right=2.6cm of sys] {Authenticated\\User / Admin};
 
-    \draw [arrow] (esp.north east) -- node [above, font=\scriptsize] {Telemetry \& Steps} (sys.north west);
-    \draw [arrow] (sys.south west) -- node [below, font=\scriptsize] {Load Poll / Config} (esp.south east);
+    \draw [arrow] (esp.north east) -- node [lbl, midway, above] {Telemetry \& Steps} (sys.north west);
+    \draw [arrow] (sys.south west) -- node [lbl, midway, below] {Load Poll \& Config} (esp.south east);
 
-    \draw [arrow] (user.north west) -- node [above, font=\scriptsize] {Auth / Control} (sys.north east);
-    \draw [arrow] (sys.south east) -- node [below, font=\scriptsize] {Visual Dashboards} (user.south west);
+    \draw [arrow] (user.north west) -- node [lbl, midway, above] {Auth \& Load Controls} (sys.north east);
+    \draw [arrow] (sys.south east) -- node [lbl, midway, below] {Live Telemetry \& Alerts} (user.south west);
 
 \end{tikzpicture}
 \caption{Data Flow Diagram (DFD) Level 0 --- Context Level Diagram.}
@@ -291,11 +391,12 @@ Figure~\ref{fig:dfd_level1} decomposes the system into discrete functional proce
 \begin{figure}[H]
 \centering
 \begin{tikzpicture}[
-    scale=0.82, every node/.style={scale=0.82},
-    entity/.style={rectangle, draw=black!80, thick, fill=orange!15, align=center, minimum width=2.2cm, minimum height=0.9cm, font=\scriptsize\bfseries},
-    proc/.style={circle, draw=black!80, thick, fill=blue!12, align=center, minimum size=2.2cm, font=\scriptsize\bfseries},
-    store/.style={rectangle, draw=black!80, thick, fill=yellow!15, minimum width=2.6cm, minimum height=0.7cm, font=\scriptsize\bfseries},
-    arrow/.style={-{Latex[length=2.2mm]}, thick, draw=black!80}
+    scale=0.84, every node/.style={scale=0.84},
+    entity/.style={rectangle, draw=deepnavy, thick, fill=iceblue, align=center, minimum width=2.2cm, minimum height=0.9cm, font=\scriptsize\bfseries},
+    proc/.style={circle, draw=profblue, line width=1.1pt, fill=white, align=center, minimum size=2.2cm, font=\scriptsize\bfseries},
+    store/.style={rectangle, draw=deepnavy, thick, fill=lightgrey, minimum width=2.8cm, minimum height=0.7cm, font=\scriptsize\bfseries},
+    arrow/.style={-{Latex[length=2.2mm]}, thick, draw=deepnavy},
+    lbl/.style={fill=white, draw=gray!25, rounded corners=2pt, font=\tiny, inner sep=1.5pt}
 ]
     % Entities
     \node (esp) [entity] at (0, 6) {ESP32 Edge\\Node};
@@ -306,25 +407,25 @@ Figure~\ref{fig:dfd_level1} decomposes the system into discrete functional proce
     \node (p2) [proc] at (8.5, 6) {2.0\\Authenticate\\\& Authorize};
     \node (p3) [proc] at (3.5, 2.5) {3.0\\Execute ML\\Inference};
     \node (p4) [proc] at (8.5, 2.5) {4.0\\Manage Closed\\Loop Loads};
-    \node (p5) [proc] at (6.0, -0.5) {5.0\\Real-Time Event\\Broadcast};
+    \node (p5) [proc] at (6.0, -0.6) {5.0\\Real-Time Event\\Broadcast};
 
     % Data Stores
-    \node (d1) [store] at (6.0, 4.2) {D1: Telemetry Collection};
+    \node (d1) [store] at (6.0, 4.3) {D1: Telemetry Collection};
     \node (d2) [store] at (6.0, 1.2) {D2: Footsteps Collection};
     \node (d3) [store] at (12, 2.5) {D3: Users \& Devices};
 
     % Data Flows
-    \draw [arrow] (esp) -- node [above, font=\tiny] {Raw Frames} (p1);
-    \draw [arrow] (p1) -- node [above, font=\tiny] {Write} (d1);
-    \draw [arrow] (p1) -- node [left, font=\tiny] {Step Vector} (p3);
-    \draw [arrow] (p3) -- node [above, font=\tiny] {Persist Class} (d2);
-    \draw [arrow] (user) -- node [above, font=\tiny] {Login / JWT} (p2);
-    \draw [arrow] (p2) -- node [right, font=\tiny] {Verify} (d3);
-    \draw [arrow] (user) -- node [right, font=\tiny] {Load Intent} (p4);
-    \draw [arrow] (p4) -- node [above, font=\tiny] {Poll State} (esp);
+    \draw [arrow] (esp) -- node [lbl, midway, above] {Raw Frames} (p1);
+    \draw [arrow] (p1) -- node [lbl, midway, above] {Write} (d1);
+    \draw [arrow] (p1) -- node [lbl, midway, left] {Step Vector} (p3);
+    \draw [arrow] (p3) -- node [lbl, midway, above] {Persist Class} (d2);
+    \draw [arrow] (user) -- node [lbl, midway, above] {Login / JWT} (p2);
+    \draw [arrow] (p2) -- node [lbl, midway, right] {Verify} (d3);
+    \draw [arrow] (user) -- node [lbl, midway, right] {Load Intent} (p4);
+    \draw [arrow] (p4) -- node [lbl, midway, above] {Poll State} (esp);
     \draw [arrow] (d1) -- (p5);
     \draw [arrow] (d2) -- (p5);
-    \draw [arrow] (p5) -| node [below, pos=0.25, font=\tiny] {Socket.IO Push} (user);
+    \draw [arrow] (p5) -| node [lbl, near end, right] {Socket.IO Push} (user);
 
 \end{tikzpicture}
 \caption{Data Flow Diagram (DFD) Level 1 --- Functional Process Decomposition.}
@@ -338,11 +439,11 @@ Figure~\ref{fig:er_diagram} presents the Entity-Relationship (ER) model defining
 \begin{figure}[H]
 \centering
 \begin{tikzpicture}[
-    scale=0.82, every node/.style={scale=0.82},
-    entity/.style={rectangle, draw=black!80, thick, fill=blue!15, align=center, minimum width=2.4cm, minimum height=0.9cm, font=\scriptsize\bfseries},
-    attr/.style={ellipse, draw=black!70, fill=gray!10, align=center, font=\tiny, inner sep=2pt},
-    rel/.style={diamond, draw=black!80, thick, fill=orange!15, align=center, font=\tiny\bfseries, inner sep=2pt},
-    line/.style={thick, draw=black!70}
+    scale=0.85, every node/.style={scale=0.85},
+    entity/.style={rectangle, draw=deepnavy, thick, fill=iceblue, align=center, minimum width=2.4cm, minimum height=0.9cm, font=\scriptsize\bfseries},
+    attr/.style={ellipse, draw=deepnavy, fill=white, align=center, font=\tiny, inner sep=2.5pt},
+    rel/.style={diamond, draw=profblue, thick, fill=amber!15, align=center, font=\tiny\bfseries, inner sep=2pt},
+    line/.style={thick, draw=deepnavy}
 ]
     % Entities
     \node (user) [entity] at (0, 4) {User};
@@ -377,9 +478,9 @@ Figure~\ref{fig:er_diagram} presents the Entity-Relationship (ER) model defining
     \draw [line] (telem) -- (t1); \draw [line] (telem) -- (t2);
 
     % Attributes for Footstep
-    \node (s1) [attr] at (3.5, -1.0) {peakVoltage};
+    \node (s1) [attr] at (3.2, -1.2) {peakVoltage};
     \node (s2) [attr] at (5.0, -1.2) {stepClass};
-    \node (s3) [attr] at (6.5, -1.0) {confidence};
+    \node (s3) [attr] at (6.8, -1.2) {confidence};
     \draw [line] (step) -- (s1); \draw [line] (step) -- (s2); \draw [line] (step) -- (s3);
 
 \end{tikzpicture}
@@ -395,26 +496,26 @@ Figure~\ref{fig:use_case} depicts system interactions from the perspective of tw
 \begin{figure}[H]
 \centering
 \begin{tikzpicture}[
-    scale=0.82, every node/.style={scale=0.82},
-    actor/.style={rectangle, draw=none, font=\small\bfseries, align=center},
-    uc/.style={ellipse, draw=black!80, thick, fill=blue!10, align=center, font=\scriptsize, minimum width=3.0cm, minimum height=0.75cm},
-    arrow/.style={thick, draw=black!70}
+    scale=0.84, every node/.style={scale=0.84},
+    actor/.style={rectangle, draw=none, font=\small\bfseries\color{deepnavy}, align=center},
+    uc/.style={ellipse, draw=deepnavy, thick, fill=iceblue, align=center, font=\scriptsize\bfseries, minimum width=3.4cm, minimum height=0.75cm},
+    arrow/.style={thick, draw=deepnavy}
 ]
     % System boundary
-    \draw [thick, rounded corners=8pt, fill=gray!3] (-1.0, -4.5) rectangle (8.0, 3.5);
-    \node at (3.5, 3.2) [font=\small\bfseries] {StepCharge AI Platform};
+    \draw [thick, rounded corners=8pt, draw=profblue!40, fill=lightgrey] (-0.8, -4.5) rectangle (8.2, 3.5);
+    \node at (3.7, 3.1) [font=\small\bfseries\color{deepnavy}] {StepCharge AI Cyber-Physical Platform};
 
     % Actors
-    \node (ped) [actor] at (-3.0, 1.5) {Pedestrian\\(Physical)};
-    \node (user) [actor] at (-3.0, -2.0) {Dashboard User /\\Administrator};
+    \node (ped) [actor] at (-2.8, 1.5) {Pedestrian\\(Physical Actor)};
+    \node (user) [actor] at (-2.8, -2.0) {Dashboard User /\\Administrator};
 
     % Use Cases
-    \node (uc1) [uc] at (3.5, 2.2) {Impart Kinetic Footstep};
-    \node (uc2) [uc] at (3.5, 1.0) {Accumulate Supercapacitor Energy};
-    \node (uc3) [uc] at (3.5, -0.2) {View Real-Time Telemetry};
-    \node (uc4) [uc] at (3.5, -1.4) {Inspect AI Kinetic Classification};
-    \node (uc5) [uc] at (3.5, -2.6) {Toggle Closed-Loop Loads};
-    \node (uc6) [uc] at (3.5, -3.8) {Acknowledge Alert Notifications};
+    \node (uc1) [uc] at (3.7, 2.2) {Impart Kinetic Footstep};
+    \node (uc2) [uc] at (3.7, 1.0) {Accumulate Supercapacitor Energy};
+    \node (uc3) [uc] at (3.7, -0.2) {View Real-Time Telemetry};
+    \node (uc4) [uc] at (3.7, -1.4) {Inspect AI Kinetic Classification};
+    \node (uc5) [uc] at (3.7, -2.6) {Toggle Closed-Loop Loads};
+    \node (uc6) [uc] at (3.7, -3.8) {Acknowledge Alert Notifications};
 
     % Links
     \draw [arrow] (ped) -- (uc1);
@@ -436,34 +537,40 @@ Figure~\ref{fig:activity_diagram} traces the continuous operational lifecycle of
 \centering
 \begin{tikzpicture}[
     scale=0.82, every node/.style={scale=0.82},
-    action/.style={rectangle, rounded corners=5pt, draw=black!80, thick, fill=blue!10, align=center, minimum width=3.4cm, minimum height=0.75cm, font=\scriptsize},
-    dec/.style={diamond, draw=black!80, thick, fill=orange!15, align=center, font=\tiny\bfseries, inner sep=2pt},
-    startstop/.style={circle, draw=black!80, fill=black, inner sep=4pt},
-    endstop/.style={circle, draw=black!80, double, fill=black, inner sep=3pt},
-    arrow/.style={-{Latex[length=2.2mm]}, thick, draw=black!80}
+    action/.style={rectangle, rounded corners=5pt, draw=deepnavy, thick, fill=white, align=center, minimum width=3.8cm, minimum height=0.75cm, font=\scriptsize},
+    dec/.style={diamond, draw=profblue, thick, fill=amber!15, align=center, font=\tiny\bfseries, inner sep=2.5pt},
+    startstop/.style={circle, draw=deepnavy, fill=deepnavy, inner sep=4pt},
+    arrow/.style={-{Latex[length=2.2mm]}, thick, draw=deepnavy},
+    line/.style={thick, draw=deepnavy},
+    lbl/.style={fill=white, draw=gray!30, rounded corners=2pt, font=\tiny\bfseries, inner sep=1.8pt}
 ]
-    \node (start) [startstop] at (0, 7) {};
-    \node (sample) [action] at (0, 6.0) {Sample ADC1 Channels\\(50\,Hz with 16$\times$ Oversampling)};
-    \node (ema) [action] at (0, 4.8) {Apply EMA Low-Pass Filter\\($\alpha = 0.25$)};
-    \node (d1) [dec] at (0, 3.4) {Voltage $> 0.80\,\text{V}$\\$\&$ Not in Pulse?};
-    \node (pulse) [action] at (0, 1.8) {Track Peak Voltage\\$\&$ Accumulate Duration};
-    \node (d2) [dec] at (0, 0.4) {Voltage $< 0.55\,\text{V}$?};
-    \node (valid) [dec] at (0, -1.2) {$60\,\text{ms} \le T_p \le 2000\,\text{ms}$?};
-    \node (tx) [action] at (0, -2.6) {Package Footstep Event\\\& Transmit HTTPS POST};
-    \node (refr) [action] at (0, -3.8) {Engage 250\,ms Refractory Lockout};
+    \node (start) [startstop] at (0, 8.8) {};
+    \node (sample) [action, fill=iceblue] at (0, 7.5) {Sample ADC1 Channels\\(50\,Hz with 16$\times$ Oversampling)};
+    \node (ema) [action] at (0, 5.9) {Apply EMA Low-Pass Filter\\($\alpha = 0.25$)};
+    \node (d1) [dec] at (0, 4.0) {Voltage $> 0.80\,\text{V}$\\$\&$ Not in Pulse?};
+    \node (pulse) [action] at (0, 2.0) {Track Peak Voltage\\$\&$ Accumulate Duration};
+    \node (d2) [dec] at (0, 0.1) {Voltage $< 0.55\,\text{V}$?};
+    \node (valid) [dec] at (0, -1.8) {$60\,\text{ms} \le T_p \le 2000\,\text{ms}$?};
+    \node (tx) [action, fill=teal!15] at (0, -3.8) {Package Footstep Event\\\& Transmit HTTPS POST};
+    \node (refr) [action] at (0, -5.3) {Engage 250\,ms Refractory Lockout};
 
+    % Downward Main Flow
     \draw [arrow] (start) -- (sample);
     \draw [arrow] (sample) -- (ema);
     \draw [arrow] (ema) -- (d1);
-    \draw [arrow] (d1) -- node [right, font=\tiny] {Yes} (pulse);
-    \draw [arrow] (d1.west) -- ++(-1.5,0) |- node [left, pos=0.25, font=\tiny] {No} (sample.west);
+    \draw [arrow] (d1) -- node [lbl, midway, right] {Yes} (pulse);
     \draw [arrow] (pulse) -- (d2);
-    \draw [arrow] (d2) -- node [right, font=\tiny] {Yes} (valid);
-    \draw [arrow] (d2.east) -- ++(1.5,0) |- node [right, pos=0.25, font=\tiny] {No (Hold)} (pulse.east);
-    \draw [arrow] (valid) -- node [right, font=\tiny] {Yes} (tx);
-    \draw [arrow] (valid.west) -- ++(-1.2,0) |- node [left, pos=0.25, font=\tiny] {No (Noise)} (sample.west);
+    \draw [arrow] (d2) -- node [lbl, midway, right] {Yes} (valid);
+    \draw [arrow] (d2.east) -- ++(1.8,0) |- node [lbl, near start, right] {No (Hold)} (pulse.east);
+    \draw [arrow] (valid) -- node [lbl, midway, right] {Yes} (tx);
     \draw [arrow] (tx) -- (refr);
-    \draw [arrow] (refr.west) -- ++(-2.0,0) |- (sample.west);
+
+    % Common Return Bus on the Left at x = -3.4 (Ample space for labels)
+    \draw [line] (d1.west) -- node [lbl, midway, above] {No} (-3.4, 4.0);
+    \draw [line] (valid.west) -- node [lbl, midway, above] {No (Noise)} (-3.4, -1.8);
+    \draw [line] (refr.west) -- (-3.4, -5.3);
+    \draw [line] (-3.4, -5.3) -- (-3.4, 7.5);
+    \draw [arrow] (-3.4, 7.5) -- (sample.west);
 
 \end{tikzpicture}
 \caption{Activity Diagram illustrating the edge firmware step detection and telemetry cycle.}
@@ -476,21 +583,22 @@ Figure~\ref{fig:state_diagram} represents the operational states of the ESP32 ed
 \begin{figure}[H]
 \centering
 \begin{tikzpicture}[
-    scale=0.85, every node/.style={scale=0.85},
-    state/.style={rectangle, rounded corners=6pt, draw=black!80, thick, fill=blue!10, align=center, minimum width=3.0cm, minimum height=0.85cm, font=\scriptsize\bfseries},
-    arrow/.style={-{Latex[length=2.2mm]}, thick, draw=black!80}
+    scale=0.86, every node/.style={scale=0.86},
+    state/.style={rectangle, rounded corners=6pt, draw=deepnavy, thick, fill=white, align=center, minimum width=3.4cm, minimum height=0.95cm, font=\scriptsize\bfseries},
+    arrow/.style={-{Latex[length=2.2mm]}, thick, draw=deepnavy},
+    lbl/.style={fill=white, draw=gray!30, rounded corners=2pt, font=\tiny\bfseries, inner sep=2pt}
 ]
-    \node (init) [state, fill=gray!20] at (0, 4) {INITIALIZING\\(Boot, Calibrate ADC, Wi-Fi)};
-    \node (idle) [state] at (0, 2) {IDLE / MONITORING\\(50\,Hz Background Sampling)};
-    \node (pulse) [state, fill=orange!20] at (4.5, 2) {PULSE\_ACQUISITION\\(Tracking Peak \& Duration)};
-    \node (tx) [state, fill=green!20] at (4.5, 0) {TRANSMITTING\\(HTTPS REST Dispatch)};
-    \node (lock) [state, fill=red!15] at (0, 0) {REFRACTORY\_LOCK\\(250\,ms Bounce Suppression)};
+    \node (init) [state, fill=lightgrey] at (0, 4.4) {INITIALIZING\\(Boot, Calibrate ADC, Wi-Fi)};
+    \node (idle) [state, fill=iceblue] at (0, 2.2) {IDLE / MONITORING\\(50\,Hz Background Sampling)};
+    \node (pulse) [state, fill=amber!15] at (7.0, 2.2) {PULSE\_ACQUISITION\\(Tracking Peak \& Duration)};
+    \node (tx) [state, fill=teal!15] at (7.0, -0.8) {TRANSMITTING\\(HTTPS REST Dispatch)};
+    \node (lock) [state, fill=failred!10] at (0, -0.8) {REFRACTORY\_LOCK\\(250\,ms Bounce Suppression)};
 
-    \draw [arrow] (init) -- node [right, font=\tiny] {Wi-Fi Connected} (idle);
-    \draw [arrow] (idle) -- node [above, font=\tiny] {$V > 0.80\,\text{V}$} (pulse);
-    \draw [arrow] (pulse) -- node [right, font=\tiny] {$V < 0.55\,\text{V}$ \& Valid} (tx);
-    \draw [arrow] (tx) -- node [above, font=\tiny] {Dispatch Complete} (lock);
-    \draw [arrow] (lock) -- node [left, font=\tiny] {Timer Expired} (idle);
+    \draw [arrow] (init) -- node [lbl, midway, right] {Wi-Fi Connected} (idle);
+    \draw [arrow] (idle) -- node [lbl, midway, above] {$V > 0.80\,\text{V}$} (pulse);
+    \draw [arrow] (pulse) -- node [lbl, midway, right] {$V < 0.55\,\text{V}$ \& Valid} (tx);
+    \draw [arrow] (tx) -- node [lbl, midway, above] {Transmit Done} (lock);
+    \draw [arrow] (lock) -- node [lbl, midway, left] {Timer Expired} (idle);
 
 \end{tikzpicture}
 \caption{State Machine Diagram of the ESP32 edge firmware.}
@@ -504,36 +612,36 @@ Figure~\ref{fig:class_diagram} outlines the object-oriented structure of backend
 \centering
 \begin{tikzpicture}[
     scale=0.82, every node/.style={scale=0.82},
-    class/.style={rectangle, draw=black!80, thick, fill=white, align=left, font=\scriptsize, inner sep=4pt}
+    class/.style={rectangle, draw=deepnavy, thick, fill=white, align=left, font=\scriptsize, inner sep=5pt}
 ]
     \node (dev) [class] at (0, 4) {
-        \textbf{DeviceModel}\\[2pt]
-        \rule{4.2cm}{0.4pt}\\[2pt]
+        \textbf{\color{deepnavy}DeviceModel}\\[2pt]
+        \rule{4.4cm}{0.4pt}\\[2pt]
         + deviceId: string\\
         + name: string\\
         + apiKeyHash: string\\
         + loads: Map$<$string, LoadState$>$\\
         + isOnline: boolean\\[2pt]
-        \rule{4.2cm}{0.4pt}\\[2pt]
+        \rule{4.4cm}{0.4pt}\\[2pt]
         + verifyKey(key: string): boolean\\
         + updateLoad(key, state): void
     };
 
-    \node (telem) [class] at (6.0, 4) {
-        \textbf{TelemetryModel}\\[2pt]
-        \rule{4.2cm}{0.4pt}\\[2pt]
+    \node (telem) [class] at (6.2, 4) {
+        \textbf{\color{deepnavy}TelemetryModel}\\[2pt]
+        \rule{4.4cm}{0.4pt}\\[2pt]
         + deviceId: string\\
         + timestamp: Date\\
         + harvestVoltage: number\\
         + storageVoltage: number\\
         + storedEnergyJoules: number\\[2pt]
-        \rule{4.2cm}{0.4pt}\\[2pt]
+        \rule{4.4cm}{0.4pt}\\[2pt]
         + computeEnergy(): number
     };
 
-    \node (step) [class] at (0, -0.5) {
-        \textbf{FootstepModel}\\[2pt]
-        \rule{4.2cm}{0.4pt}\\[2pt]
+    \node (step) [class] at (0, -0.6) {
+        \textbf{\color{deepnavy}FootstepModel}\\[2pt]
+        \rule{4.4cm}{0.4pt}\\[2pt]
         + deviceId: string\\
         + timestamp: Date\\
         + peakVoltage: number\\
@@ -541,22 +649,22 @@ Figure~\ref{fig:class_diagram} outlines the object-oriented structure of backend
         + pulseDurationMs: number\\
         + stepClass: string\\
         + confidence: number\\[2pt]
-        \rule{4.2cm}{0.4pt}\\[2pt]
+        \rule{4.4cm}{0.4pt}\\[2pt]
         + toFeatureVector(): number[]
     };
 
-    \node (ctrl) [class] at (6.0, -0.5) {
-        \textbf{DeviceController}\\[2pt]
-        \rule{4.2cm}{0.4pt}\\[2pt]
+    \node (ctrl) [class] at (6.2, -0.6) {
+        \textbf{\color{deepnavy}DeviceController}\\[2pt]
+        \rule{4.4cm}{0.4pt}\\[2pt]
         + ingestTelemetry(req, res): void\\
         + recordFootstep(req, res): void\\
         + executeLoadCommand(req, res): void\\
         + getDeviceHealth(req, res): void
     };
 
-    \draw [thick, -{Latex}] (ctrl) -- (dev);
-    \draw [thick, -{Latex}] (ctrl) -- (telem);
-    \draw [thick, -{Latex}] (ctrl) -- (step);
+    \draw [thick, -{Latex}, draw=deepnavy] (ctrl) -- (dev);
+    \draw [thick, -{Latex}, draw=deepnavy] (ctrl) -- (telem);
+    \draw [thick, -{Latex}, draw=deepnavy] (ctrl) -- (step);
 
 \end{tikzpicture}
 \caption{Class Diagram illustrating primary backend models and services.}
@@ -569,36 +677,38 @@ Figure~\ref{fig:sequence_diagram} models the interaction sequence during footste
 \begin{figure}[H]
 \centering
 \begin{tikzpicture}[
-    scale=0.80, every node/.style={scale=0.80},
-    lifeline/.style={dashed, draw=black!60, thick},
-    obj/.style={rectangle, rounded corners=3pt, draw=black!80, thick, fill=blue!10, align=center, font=\scriptsize\bfseries, minimum width=1.8cm, minimum height=0.6cm},
-    msg/.style={-{Latex[length=2mm]}, thick, draw=black!80, font=\tiny}
+    scale=0.84, every node/.style={scale=0.84},
+    lifeline/.style={dashed, draw=gray!60, thick},
+    obj/.style={rectangle, rounded corners=4pt, draw=deepnavy, thick, fill=iceblue, align=center, font=\scriptsize\bfseries, minimum width=1.9cm, minimum height=0.65cm},
+    msg/.style={-{Latex[length=2mm]}, thick, draw=deepnavy, font=\tiny\bfseries}
 ]
-    % Entities
-    \node (p) [obj] at (0, 6) {Piezo Tile};
-    \node (e) [obj] at (2.5, 6) {ESP32};
-    \node (b) [obj] at (5.0, 6) {Backend};
-    \node (m) [obj] at (7.5, 6) {ML Service};
-    \node (s) [obj] at (10.0, 6) {Socket.IO};
-    \node (u) [obj] at (12.5, 6) {React UI};
+    % Entities (y = 7.0)
+    \node (p) [obj] at (0, 7.0) {Piezo Tile};
+    \node (e) [obj] at (2.5, 7.0) {ESP32};
+    \node (b) [obj] at (5.0, 7.0) {Backend};
+    \node (m) [obj] at (7.5, 7.0) {ML Service};
+    \node (s) [obj] at (10.0, 7.0) {Socket.IO};
+    \node (u) [obj] at (12.5, 7.0) {React UI};
 
-    % Lifelines
-    \draw [lifeline] (p) -- (0, 0);
-    \draw [lifeline] (e) -- (2.5, 0);
-    \draw [lifeline] (b) -- (5.0, 0);
-    \draw [lifeline] (m) -- (7.5, 0);
-    \draw [lifeline] (s) -- (10.0, 0);
-    \draw [lifeline] (u) -- (12.5, 0);
+    % Lifelines down to y = -1.5
+    \draw [lifeline] (p) -- (0, -1.5);
+    \draw [lifeline] (e) -- (2.5, -1.5);
+    \draw [lifeline] (b) -- (5.0, -1.5);
+    \draw [lifeline] (m) -- (7.5, -1.5);
+    \draw [lifeline] (s) -- (10.0, -1.5);
+    \draw [lifeline] (u) -- (12.5, -1.5);
 
-    % Messages
-    \draw [msg] (0, 5.2) -- node [above] {1: Kinetic Impact} (2.5, 5.2);
-    \draw [msg] (2.5, 4.5) -- node [above] {2: Schmitt Detect} (2.5, 4.1);
+    % Messages with Generous Vertical Offsets
+    \draw [msg] (0, 5.8) -- node [above] {1: Kinetic Impact} (2.5, 5.8);
+    \draw [msg] (2.5, 5.0) -- ++(0.7, 0) |- (2.5, 4.3);
+    \node [right, font=\tiny\bfseries] at (3.3, 4.65) {2: Schmitt Detect};
     \draw [msg] (2.5, 3.6) -- node [above] {3: POST /footsteps} (5.0, 3.6);
-    \draw [msg] (5.0, 3.0) -- node [above] {4: POST /predict} (7.5, 3.0);
-    \draw [msg] (7.5, 2.4) -- node [above] {5: Class \& Conf} (5.0, 2.4);
-    \draw [msg] (5.0, 1.8) -- node [above] {6: Persist in DB} (5.0, 1.5);
-    \draw [msg] (5.0, 1.1) -- node [above] {7: Emit footstep:detected} (10.0, 1.1);
-    \draw [msg] (10.0, 0.5) -- node [above] {8: Push WebSocket Frame} (12.5, 0.5);
+    \draw [msg] (5.0, 2.7) -- node [above] {4: POST /predict} (7.5, 2.7);
+    \draw [msg] (7.5, 1.8) -- node [above] {5: Class \& Conf} (5.0, 1.8);
+    \draw [msg] (5.0, 1.1) -- ++(0.7, 0) |- (5.0, 0.4);
+    \node [right, font=\tiny\bfseries] at (5.8, 0.75) {6: Persist in DB};
+    \draw [msg] (5.0, -0.3) -- node [above] {7: Emit footstep:detected} (10.0, -0.3);
+    \draw [msg] (10.0, -1.0) -- node [above] {8: Push WebSocket Frame} (12.5, -1.0);
 
 \end{tikzpicture}
 \caption{Sequence Diagram of footstep acquisition, ML classification, and UI update.}
@@ -611,43 +721,43 @@ Figure~\ref{fig:object_diagram} depicts a concrete runtime snapshot of system in
 \begin{figure}[H]
 \centering
 \begin{tikzpicture}[
-    scale=0.85, every node/.style={scale=0.85},
-    obj/.style={rectangle, draw=black!80, thick, fill=yellow!10, align=left, font=\scriptsize, inner sep=4pt}
+    scale=0.86, every node/.style={scale=0.86},
+    obj/.style={rectangle, draw=deepnavy, thick, fill=white, align=left, font=\scriptsize, inner sep=5pt}
 ]
     \node (dev1) [obj] at (0, 3) {
-        \underline{esp32\_01 : Device}\\
+        \underline{\textbf{\color{deepnavy}esp32\_01 : Device}}\\
         deviceId = ``ESP32-01''\\
         firmwareVersion = ``1.3.0''\\
         isOnline = true
     };
 
-    \node (telem1) [obj] at (5.5, 3) {
-        \underline{latestTelemetry : Telemetry}\\
-        storageVoltage = 3.82 V\\
-        harvestVoltage = 0.24 V\\
-        storedEnergy = 0.730 J\\
+    \node (telem1) [obj] at (5.8, 3) {
+        \underline{\textbf{\color{deepnavy}latestTelemetry : Telemetry}}\\
+        storageVoltage = 3.82\,V\\
+        harvestVoltage = 0.24\,V\\
+        storedEnergy = 0.730\,J\\
         timestamp = 2026-11-11T08:30:00Z
     };
 
     \node (step1) [obj] at (0, 0) {
-        \underline{step\_1042 : Footstep}\\
-        peakVoltage = 2.45 V\\
-        averageVoltage = 1.32 V\\
-        pulseDurationMs = 180 ms\\
+        \underline{\textbf{\color{deepnavy}step\_1042 : Footstep}}\\
+        peakVoltage = 2.45\,V\\
+        averageVoltage = 1.32\,V\\
+        pulseDurationMs = 180\,ms\\
         stepClass = ``NORMAL''\\
         confidence = 0.92
     };
 
-    \node (load1) [obj] at (5.5, 0) {
-        \underline{ledLoad : LoadState}\\
+    \node (load1) [obj] at (5.8, 0) {
+        \underline{\textbf{\color{deepnavy}ledLoad : LoadState}}\\
         command = true\\
         actualState = true\\
         lastToggledAt = 2026-11-11T08:29:45Z
     };
 
-    \draw [thick] (dev1) -- (telem1);
-    \draw [thick] (dev1) -- (step1);
-    \draw [thick] (dev1) -- (load1);
+    \draw [thick, draw=deepnavy] (dev1) -- (telem1);
+    \draw [thick, draw=deepnavy] (dev1) -- (step1);
+    \draw [thick, draw=deepnavy] (dev1) -- (load1);
 
 \end{tikzpicture}
 \caption{Object Diagram capturing runtime instances during a footstep event.}

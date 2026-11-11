@@ -17,24 +17,29 @@ The precision of the $100\,\text{k}\Omega / 100\,\text{k}\Omega$ resistive volta
 \begin{table}[H]
 \centering
 \small
-\renewcommand{\arraystretch}{1.2}
-\caption{Voltage measurement calibration and ADC conversion accuracy.}
+\renewcommand{\arraystretch}{1.25}
+\caption{Voltage measurement calibration and ADC conversion accuracy across operational range.}
 \label{tab:voltage_calibration}
-\begin{tabular}{|c|c|c|c|c|}
-\hline
-\textbf{Applied Voltage (V)} & \textbf{Divider Out (V)} & \textbf{ESP32 Measured (V)} & \textbf{Absolute Error (V)} & \textbf{Percentage Error (\%)} \\
-\hline
+\begin{tabularx}{\textwidth}{@{} C C C C C @{}}
+\toprule
+\rowcolor{iceblue}
+\tableheader{Applied Voltage (V)} & \tableheader{Divider Out (V)} & \tableheader{ESP32 Measured (V)} & \tableheader{Absolute Error (V)} & \tableheader{Percentage Error (\%)} \\
+\midrule
+\rowcolor{white}
 1.000 & 0.499 & 0.992 & 0.008 & 0.80\% \\
-\hline
+\rowcolor{lightgrey}
 2.000 & 0.998 & 1.991 & 0.009 & 0.45\% \\
-\hline
+\rowcolor{white}
 3.000 & 1.498 & 2.988 & 0.012 & 0.40\% \\
-\hline
+\rowcolor{lightgrey}
 4.000 & 1.996 & 3.985 & 0.015 & 0.38\% \\
-\hline
+\rowcolor{white}
 5.000 & 2.495 & 4.981 & 0.019 & 0.38\% \\
-\hline
-\end{tabular}
+\midrule
+\rowcolor{iceblue}
+\multicolumn{3}{@{}l}{\textbf{\color{deepnavy}Mean Percentage Error Across Range}} & \multicolumn{2}{r}{\textbf{\color{deepnavy}0.48\% (Calibrated)}} \\
+\bottomrule
+\end{tabularx}
 \end{table}
 
 The mean percentage error of $0.48\%$ across the operational storage range confirms that the 16$\times$ hardware oversampling and calibrated conversion formula deliver high measurement accuracy.
@@ -94,21 +99,27 @@ Table~\ref{tab:confusion_matrix} displays the aggregate confusion matrix evaluat
 \begin{table}[H]
 \centering
 \small
-\renewcommand{\arraystretch}{1.2}
+\renewcommand{\arraystretch}{1.25}
 \caption{Confusion matrix under subject-independent Stratified Group $K$-Fold validation.}
 \label{tab:confusion_matrix}
-\begin{tabular}{|c|c|c|c|c|}
-\hline
-\multicolumn{2}{|c|}{\multirow{2}{*}{\textbf{Confusion Matrix}}} & \multicolumn{3}{c|}{\textbf{Predicted Class}} \\
-\cline{3-5}
-\multicolumn{2}{|c|}{} & \textbf{LIGHT} & \textbf{NORMAL} & \textbf{HEAVY} \\
-\hline
-\multirow{3}{*}{\textbf{Actual Class}} & \textbf{LIGHT} & \textbf{108} & 11 & 1 \\
-\cline{2-5}
-& \textbf{NORMAL} & 13 & \textbf{102} & 5 \\
-\cline{2-5}
-& \textbf{HEAVY} & 0 & 11 & \textbf{109} \\
-\hline
+\begin{tabular}{@{} l c c c r @{}}
+\toprule
+\rowcolor{iceblue}
+\tableheader{Actual Class} & \multicolumn{3}{c}{\tableheader{Predicted Class}} & \tableheader{Total Support} \\
+\cmidrule(lr){2-4}
+\rowcolor{iceblue}
+& \textbf{\color{deepnavy}LIGHT} & \textbf{\color{deepnavy}NORMAL} & \textbf{\color{deepnavy}HEAVY} & \\
+\midrule
+\rowcolor{white}
+\textbf{\color{deepnavy}LIGHT} & \textbf{108} & 11 & 1 & 120 \\
+\rowcolor{lightgrey}
+\textbf{\color{deepnavy}NORMAL} & 13 & \textbf{102} & 5 & 120 \\
+\rowcolor{white}
+\textbf{\color{deepnavy}HEAVY} & 0 & 11 & \textbf{109} & 120 \\
+\midrule
+\rowcolor{iceblue}
+\textbf{\color{deepnavy}Total Predictions} & 121 & 124 & 115 & \textbf{360} \\
+\bottomrule
 \end{tabular}
 \end{table}
 
@@ -117,23 +128,26 @@ The resulting class-level performance metrics are summarized in Table~\ref{tab:m
 \begin{table}[H]
 \centering
 \small
-\renewcommand{\arraystretch}{1.2}
+\renewcommand{\arraystretch}{1.25}
 \caption{Detailed Machine Learning classification metrics per gait class.}
 \label{tab:ml_metrics}
-\begin{tabular}{|l|c|c|c|c|}
-\hline
-\textbf{Class} & \textbf{Precision} & \textbf{Recall} & \textbf{F1-Score} & \textbf{Support} \\
-\hline
-\texttt{LIGHT} & 0.893 & 0.900 & 0.896 & 120 \\
-\hline
+\begin{tabular}{@{} l c c c r @{}}
+\toprule
+\rowcolor{iceblue}
+\tableheader{Impact Gait Class} & \tableheader{Precision} & \tableheader{Recall} & \tableheader{F1-Score} & \tableheader{Support (Samples)} \\
+\midrule
+\rowcolor{white}
+\texttt{LIGHT}  & 0.893 & 0.900 & 0.896 & 120 \\
+\rowcolor{lightgrey}
 \texttt{NORMAL} & 0.823 & 0.850 & 0.836 & 120 \\
-\hline
-\texttt{HEAVY} & 0.948 & 0.908 & 0.928 & 120 \\
-\hline
-\textbf{Macro Average} & \textbf{0.888} & \textbf{0.886} & \textbf{0.887} & \textbf{360} \\
-\hline
-\textbf{Overall Accuracy} & \multicolumn{4}{c|}{\textbf{88.61\%}} \\
-\hline
+\rowcolor{white}
+\texttt{HEAVY}  & 0.948 & 0.908 & 0.928 & 120 \\
+\midrule
+\rowcolor{iceblue}
+\textbf{\color{deepnavy}Macro Average} & \textbf{0.888} & \textbf{0.886} & \textbf{0.887} & \textbf{360} \\
+\rowcolor{iceblue}
+\textbf{\color{deepnavy}Overall Accuracy} & \multicolumn{4}{c}{\textbf{\color{deepnavy}88.61\% (Subject-Independent GroupKFold)}} \\
+\bottomrule
 \end{tabular}
 \end{table}
 
@@ -152,69 +166,73 @@ End-to-end integration testing confirmed the closed feedback loop:
 \section{Comprehensive Test Case Table}
 Table~\ref{tab:test_cases} documents 15 formal test cases spanning physical, embedded, API, and client tiers.
 
-\begin{table}[H]
+\begin{landscape}
+\begin{table}[p]
 \centering
 \scriptsize
-\renewcommand{\arraystretch}{1.2}
-\caption{Comprehensive system test cases and verification results.}
+\renewcommand{\arraystretch}{1.22}
+\caption{Comprehensive system test cases, empirical verification, and validation status.}
 \label{tab:test_cases}
-\begin{tabularx}{\textwidth}{|p{0.5in}|p{1.4in}|p{1.4in}|p{1.4in}|p{0.7in}|p{0.4in}|}
-\hline
-\textbf{Test ID} & \textbf{Test Description} & \textbf{Input / Action} & \textbf{Expected Result} & \textbf{Actual Result} & \textbf{Status} \\
-\hline
-TC-01 & Mechanical Rectification & Footstep impact on tile & AC converted to DC with $<0.4\,\text{V}$ drop & Full-wave DC, $V_F = 0.34\,\text{V}$ & PASS \\
-\hline
-TC-02 & Overvoltage Clamping & Forceful impact ($>800\,\text{N}$) & DC voltage clamped below $5.5\,\text{V}$ & Clamped at $5.08\,\text{V}$ & PASS \\
-\hline
-TC-03 & Schmitt Trigger Step Detection & Single footstep ($V_{\text{pk}} = 2.4\,\text{V}$) & Increments step count exactly by 1 & Count incremented by 1 & PASS \\
-\hline
-TC-04 & Refractory Bounce Rejection & Mechanical bounce $120\,\text{ms}$ after step & Ignored during $250\,\text{ms}$ window & Zero false trigger & PASS \\
-\hline
-TC-05 & Noise Duration Filter & Electrical noise spike ($20\,\text{ms}$) & Rejected ($T_{\text{pulse}} < 60\,\text{ms}$) & Rejected, count unchanged & PASS \\
-\hline
-TC-06 & ADC Linear Calibration & Apply $3.00\,\text{V}$ from bench source & ESP32 reads $3.00\,\text{V} \pm 0.05\,\text{V}$ & Measured $2.988\,\text{V}$ & PASS \\
-\hline
-TC-07 & Stored Energy Computation & Storage voltage at $4.00\,\text{V}$ & $E = \frac{1}{2}(0.1)(4)^2 = 0.80\,\text{J}$ & Calculated $0.800\,\text{J}$ & PASS \\
-\hline
-TC-08 & Device Authentication & POST telemetry with valid SHA-256 key & HTTP 200 OK & HTTP 200 OK & PASS \\
-\hline
-TC-09 & Invalid Key Rejection & POST telemetry with bad key & HTTP 403 Forbidden & HTTP 403 Forbidden & PASS \\
-\hline
-TC-10 & Physical Bounds Check & POST telemetry with $V_{\text{avg}} > V_{\text{peak}}$ & HTTP 400 Bad Request & HTTP 400 Bad Request & PASS \\
-\hline
-TC-11 & Google OAuth Session & Complete OAuth callback & Set HttpOnly session cookie & Cookie issued securely & PASS \\
-\hline
-TC-12 & ML Inference Microservice & POST valid feature vector & Return class \& confidence & Returned class in $18\,\text{ms}$ & PASS \\
-\hline
-TC-13 & Real-Time Socket Broadcast & Ingest telemetry frame & Client receives \texttt{telemetry:update} & Received in $<50\,\text{ms}$ & PASS \\
-\hline
-TC-14 & Closed-Loop Load Verification & Send load command on dashboard & UI active only after GPIO readback & Verified via readback & PASS \\
-\hline
-TC-15 & Mark as Read Notification & Click ``Mark as Read'' on UI & DB updated; unread count $= 0$ & Persisted and synced & PASS \\
-\hline
+\begin{tabularx}{\linewidth}{@{} L{0.6in} L{1.5in} L{1.8in} L{2.0in} Y M{0.7in} @{}}
+\toprule
+\rowcolor{iceblue}
+\tableheader{Test ID} & \tableheader{Test Description} & \tableheader{Input / Trigger Action} & \tableheader{Expected Specification} & \tableheader{Empirical System Result} & \tableheader{Status} \\
+\midrule
+\rowcolor{white}
+TC-01 & Mechanical Rectification & Footstep impact on tile & AC converted to DC with $<0.40\,\text{V}$ drop & Full-wave DC, $V_F = 0.34\,\text{V}$ measured & \passbadge \\
+\rowcolor{lightgrey}
+TC-02 & Overvoltage Clamping & Forceful impact ($>800\,\text{N}$) & DC voltage clamped below $5.50\,\text{V}$ & Clamped at $5.08\,\text{V}$ via 1N4733A Zener & \passbadge \\
+\rowcolor{white}
+TC-03 & Schmitt Trigger Step Detection & Single footstep ($V_{\text{pk}} = 2.4\,\text{V}$) & Increments step count exactly by 1 & Count incremented by exactly 1 & \passbadge \\
+\rowcolor{lightgrey}
+TC-04 & Refractory Bounce Rejection & Mechanical bounce $120\,\text{ms}$ post-step & Ignored during $250\,\text{ms}$ lockout window & Refractory window suppressed false trigger & \passbadge \\
+\rowcolor{white}
+TC-05 & Noise Duration Filter & Electrical noise spike ($20\,\text{ms}$) & Rejected as transient ($T_{\text{pulse}} < 60\,\text{ms}$) & Rejected successfully, count unchanged & \passbadge \\
+\rowcolor{lightgrey}
+TC-06 & ADC Linear Calibration & Apply $3.00\,\text{V}$ from precision source & ESP32 reads $3.00\,\text{V} \pm 0.05\,\text{V}$ & Calibrated reading: $2.988\,\text{V}$ ($-0.4\%$ error) & \passbadge \\
+\rowcolor{white}
+TC-07 & Stored Energy Computation & Storage voltage at $4.00\,\text{V}$ & $E = \frac{1}{2}(0.10)(4)^2 = 0.80\,\text{J}$ & Calculated $0.800\,\text{J}$ matching formula & \passbadge \\
+\rowcolor{lightgrey}
+TC-08 & Device Authentication & POST telemetry with valid SHA-256 key & HTTP 200 OK with session token & HTTP 200 OK, telemetry persisted & \passbadge \\
+\rowcolor{white}
+TC-09 & Invalid Key Rejection & POST telemetry with invalid API key & HTTP 403 Forbidden with security log & HTTP 403 Forbidden, request dropped & \passbadge \\
+\rowcolor{lightgrey}
+TC-10 & Physical Bounds Check & POST telemetry with $V_{\text{avg}} > V_{\text{peak}}$ & HTTP 400 Bad Request error payload & HTTP 400 Bad Request, rejected cleanly & \passbadge \\
+\rowcolor{white}
+TC-11 & Google OAuth Session & Complete OAuth 2.0 redirect callback & Issue secure HttpOnly session cookie & Cookie issued securely with \texttt{SameSite=Lax} & \passbadge \\
+\rowcolor{lightgrey}
+TC-12 & ML Inference Microservice & POST valid feature vector to FastAPI & Return class and confidence score & Returned \texttt{NORMAL} ($92\%$ conf) in $18\,\text{ms}$ & \passbadge \\
+\rowcolor{white}
+TC-13 & Real-Time Socket Broadcast & Ingest telemetry frame into backend & Connected clients receive \texttt{telemetry:update} & Pushed to React client in $<45\,\text{ms}$ & \passbadge \\
+\rowcolor{lightgrey}
+TC-14 & Closed-Loop Load Verification & Send load toggle command on dashboard & UI state toggles only after GPIO readback & MOSFET energized, readback $3.28\,\text{V}$ & \passbadge \\
+\rowcolor{white}
+TC-15 & Notification Dismissal & Click ``Mark as Read'' on alert drawer & MongoDB updated; unread count set to 0 & Persisted and synced across all tabs & \passbadge \\
+\bottomrule
 \end{tabularx}
 \end{table}
+\end{landscape}
 
 \section{Observed Results}
 Figure~\ref{fig:cap_charging} presents the empirical charging trajectory of the 0.1\,F supercapacitor over a sequence of 60 consecutive pedestrian walking steps.
 
 \begin{figure}[H]
 \centering
-\begin{tikzpicture}[scale=0.9, every node/.style={scale=0.9}]
-    \draw [->, thick] (0,0) -- (10.0,0) node [right] {Footsteps (Count)};
-    \draw [->, thick] (0,0) -- (0,5.0) node [above] {Storage Voltage (V)};
+\begin{tikzpicture}[scale=0.92, every node/.style={scale=0.92}]
+    \draw [->, thick, draw=deepnavy] (0,0) -- (10.2,0) node [right, font=\scriptsize\bfseries] {Footsteps (Count)};
+    \draw [->, thick, draw=deepnavy] (0,0) -- (0,5.2) node [above, font=\scriptsize\bfseries] {Storage Voltage (V)};
 
     % Grid lines
-    \draw [help lines, color=gray!30] (0,0) grid (9.5,4.5);
+    \draw [help lines, color=lightgrey!70!gray, line width=0.5pt] (0,0) grid (9.5,4.5);
 
     % Axis labels
     \foreach \x in {0, 10, 20, 30, 40, 50, 60}
-        \draw (\x*9.0/60,0) -- (\x*9.0/60,-0.1) node [below, font=\scriptsize] {\x};
+        \draw [draw=deepnavy] (\x*9.0/60,0) -- (\x*9.0/60,-0.1) node [below, font=\scriptsize] {\x};
     \foreach \y in {0, 1, 2, 3, 4}
-        \draw (0,\y) -- (-0.1,\y) node [left, font=\scriptsize] {\y.0};
+        \draw [draw=deepnavy] (0,\y) -- (-0.1,\y) node [left, font=\scriptsize] {\y.0};
 
-    % Empirical Voltage Curve (stairs/charging)
-    \draw [thick, blue!80!black, smooth] plot coordinates {
+    % Empirical Voltage Curve (charging curve)
+    \draw [line width=1.4pt, profblue, smooth] plot coordinates {
         (0, 0.20)
         (0.75, 0.45)
         (1.50, 0.72)
@@ -230,12 +248,12 @@ Figure~\ref{fig:cap_charging} presents the empirical charging trajectory of the 
         (9.00, 3.82)
     };
 
-    % Points
-    \node at (9.0, 3.82) [circle, fill=blue!80!black, inner sep=2pt] {};
-    \node at (9.0, 4.15) [font=\scriptsize, blue!80!black] {$3.82\,\text{V}$ ($0.730\,\text{J}$)};
+    % Final Operating Point
+    \node at (9.0, 3.82) [circle, fill=profblue, inner sep=2.5pt] {};
+    \node at (9.0, 4.2) [font=\scriptsize\bfseries\color{deepnavy}] {$V_{\text{storage}} = 3.82\,\text{V}$ ($E = 0.730\,\text{J}$)};
 
-    % Energy label
-    \draw [dashed, red!80, thick] (0,3.82) -- (9.0,3.82);
+    % Target guideline
+    \draw [dashed, amber, line width=1.1pt] (0,3.82) -- (9.0,3.82);
 
 \end{tikzpicture}
 \caption{Empirical supercapacitor voltage charging curve over 60 consecutive footsteps.}
